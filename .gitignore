@@ -1,0 +1,14 @@
+# IDE stuff
+.idea/
+.vs/
+.vscode/
+
+# Build
+bin/*
+!bin/.gitkeep
+
+# MacOS shit
+.DS_Store
+
+# Misc
+.dccache
