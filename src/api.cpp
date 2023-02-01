@@ -6,13 +6,14 @@ AxiDraw::AxiDraw()
 
 	try
 	{
-		axidraw = py::import("pyaxidraw").attr("axidraw").attr("AxiDraw")();
+		axiDraw = py::import("pyaxidraw").attr("axiDraw").attr("AxiDraw")();
 	}
 	catch (py::error_already_set const &)
 	{
 		PyErr_Print();
-		std::cerr << "[\033[1;31mERROR\033[0m]: The library 'pyaxidraw' is not installed\n"
-				  << "Please install it with 'pip install https://cdn.evilmadscientist.com/dl/ad/public/AxiDraw_API.zip'"
+		std::cerr << "[\033[1;31mERROR\033[0m]: The library 'pyaxidraw' is not installed.\n"
+				  << "Please install it with '\033]8;;https://cdn.evilmadscientist.com/dl/ad/public/AxiDraw_API.zip"
+				  << "\033\\pip install https://cdn.evilmadscientist.com/dl/ad/public/AxiDraw_API.zip\033]8;;\033\\'"
 				  << std::endl;
 		exit(EXIT_FAILURE);
 	}
@@ -23,7 +24,7 @@ AxiDraw::~AxiDraw()
 	Py_Finalize();
 }
 
-static std::string download_file(const std::string &url)
+static std::string downloadFile(const std::string &url)
 {
 	std::string host, path;
 	std::size_t protocolEnd = url.find("://");
@@ -58,19 +59,19 @@ static std::string download_file(const std::string &url)
 	std::string request = "GET " + path + " HTTP/1.1\r\nHost: " + host + "\r\nConnection: close\r\n\r\n";
 	boost::asio::write(socket, boost::asio::buffer(request));
 
-	std::string http_response;
-	boost::asio::streambuf response_buffer;
-	boost::asio::read_until(socket, response_buffer, "\r\n");
-	std::istream response_stream(&response_buffer);
-	std::getline(response_stream, http_response);
+	std::string httpResponse;
+	boost::asio::streambuf responseBuffer;
+	boost::asio::read_until(socket, responseBuffer, "\r\n");
+	std::istream responseStream(&responseBuffer);
+	std::getline(responseStream, httpResponse);
 
-	if (http_response.find("200 OK") == std::string::npos)
+	if (httpResponse.find("200 OK") == std::string::npos)
 	{
 		std::cerr << "[\033[1;31mERROR\033[0m]: Could not download file from '" << url << "'." << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
-	fs::path temp = fs::temp_directory_path() / fs::unique_path();
+	fs::path temp = fs::unique_path();
 	std::ofstream file;
 	file.open(temp.string(), std::ios::out | std::ios::binary);
 
@@ -85,157 +86,156 @@ static std::string download_file(const std::string &url)
 
 #pragma region General
 
-void AxiDraw::set_acceleration(double acceleration)
+void AxiDraw::setAcceleration(double acceleration)
 {
-	axidraw.attr("options").attr("accel") = acceleration;
+	axiDraw.attr("options").attr("accel") = acceleration;
 }
 
-void AxiDraw::set_pen_up_position(double position)
+void AxiDraw::setPenUpPosition(double position)
 {
-	axidraw.attr("options").attr("pen_pos_up") = position;
+	axiDraw.attr("options").attr("pen_pos_up") = position;
 }
 
-void AxiDraw::set_pen_down_position(double position)
+void AxiDraw::setPenDownPosition(double position)
 {
-	axidraw.attr("options").attr("pen_pos_down") = position;
+	axiDraw.attr("options").attr("pen_pos_down") = position;
 }
 
-void AxiDraw::set_pen_up_delay(double delay)
+void AxiDraw::setPenUpDelay(double delay)
 {
-	axidraw.attr("options").attr("pen_delay_up") = delay;
+	axiDraw.attr("options").attr("pen_delay_up") = delay;
 }
 
-void AxiDraw::set_pen_down_delay(double delay)
+void AxiDraw::setPenDownDelay(double delay)
 {
-	axidraw.attr("options").attr("pen_delay_down") = delay;
+	axiDraw.attr("options").attr("pen_delay_down") = delay;
 }
 
-void AxiDraw::set_pen_up_speed(double speed)
+void AxiDraw::setPenUpSpeed(double speed)
 {
-	axidraw.attr("options").attr("speed_penup") = speed;
+	axiDraw.attr("options").attr("speed_penup") = speed;
 }
 
-void AxiDraw::set_pen_down_speed(double speed)
+void AxiDraw::setPenDownSpeed(double speed)
 {
-	axidraw.attr("options").attr("speed_pendown") = speed;
+	axiDraw.attr("options").attr("speed_pendown") = speed;
 }
 
-void AxiDraw::set_pen_up_rate(double rate)
+void AxiDraw::setPenUpRate(double rate)
 {
-	axidraw.attr("options").attr("pen_rate_raise") = rate;
+	axiDraw.attr("options").attr("pen_rate_raise") = rate;
 }
 
-void AxiDraw::set_pen_down_rate(double rate)
+void AxiDraw::setPenDownRate(double rate)
 {
-	axidraw.attr("options").attr("pen_rate_lower") = rate;
+	axiDraw.attr("options").attr("pen_rate_lower") = rate;
 }
 
-void AxiDraw::set_model(int model)
+void AxiDraw::setModel(int model)
 {
-	axidraw.attr("options").attr("model") = model;
+	axiDraw.attr("options").attr("model") = model;
 }
 
-void AxiDraw::set_port(const std::string &port)
+void AxiDraw::setPort(const std::string &port)
 {
-	axidraw.attr("options").attr("port") = port;
+	axiDraw.attr("options").attr("port") = port;
 }
 
 #pragma endregion
 #pragma region Interactive
 
-void AxiDraw::mode_interactive()
+void AxiDraw::modeInteractive()
 {
-	axidraw.attr("interactive")();
+	axiDraw.attr("interactive")();
 }
 
-void AxiDraw::set_units(int units)
+void AxiDraw::setUnits(int units)
 {
-	axidraw.attr("options").attr("units") = units;
+	axiDraw.attr("options").attr("units") = units;
 }
 
 void AxiDraw::connect()
 {
-	if (!axidraw.attr("connect")()) std::cerr << "[\033[1;31mERROR\033[0m]: Could not connect to AxiDraw!" << std::endl;
+	if (!axiDraw.attr("connect")()) std::cerr << "[\033[1;31mERROR\033[0m]: Could not connect to AxiDraw!" << std::endl;
 }
 
 void AxiDraw::disconnect()
 {
-	axidraw.attr("disconnect")();
+	axiDraw.attr("disconnect")();
 }
 
-void AxiDraw::update_options()
+void AxiDraw::updateOptions()
 {
-	axidraw.attr("update")();
+	axiDraw.attr("update")();
 }
 
-void AxiDraw::pen_up()
+void AxiDraw::penUp()
 {
-	axidraw.attr("penup")();
+	axiDraw.attr("penup")();
 }
 
-void AxiDraw::pen_down()
+void AxiDraw::penDown()
 {
-	axidraw.attr("pendown")();
+	axiDraw.attr("pendown")();
 }
 
-void AxiDraw::pen_toggle()
+void AxiDraw::penToggle()
 {
-	axidraw.attr("current_pen")() ? pen_down() : pen_up();
+	axiDraw.attr("current_pen")() ? penDown() : penUp();
 }
 
 void AxiDraw::home()
 {
-	axidraw.attr("moveto")(0, 0);
+	axiDraw.attr("moveto")(0, 0);
 }
 
-void AxiDraw::go_to(double x, double y)
+void AxiDraw::goTo(double x, double y)
 {
-	axidraw.attr("moveto")(x, y);
+	axiDraw.attr("moveto")(x, y);
 }
 
-void AxiDraw::go_to_relative(double x, double y)
+void AxiDraw::goToRelative(double x, double y)
 {
-	axidraw.attr("move")(x, y);
+	axiDraw.attr("move")(x, y);
 }
 
-void AxiDraw::draw_path(std::vector<std::pair<double, double>> path)
+void AxiDraw::drawPath(std::vector<std::pair<double, double>> path)
 {
 	for (auto point: path)
 	{
-		if (point == path.front()) axidraw.attr("moveto")(point.first, point.second);
-		else axidraw.attr("lineto")(point.first, point.second);
+		if (point == path.front()) axiDraw.attr("moveto")(point.first, point.second);
+		else axiDraw.attr("lineto")(point.first, point.second);
 	}
 }
 
 void AxiDraw::wait(double ms)
 {
-	axidraw.attr("delay")(ms);
+	axiDraw.attr("delay")(ms);
 }
 
-std::vector<double> AxiDraw::get_position()
+std::vector<double> AxiDraw::getPosition()
 {
-	const py::object &pos = axidraw.attr("current_pos");
+	const py::object &pos = axiDraw.attr("current_pos");
 	return {py::extract<double>(pos[0])(), py::extract<double>(pos[1])()};
 }
 
-bool AxiDraw::get_pen_status()
+bool AxiDraw::getPenStatus()
 {
-	return axidraw.attr("current_pen")();
+	return axiDraw.attr("current_pen")();
 }
 
 #pragma endregion
 #pragma region Plot
 
-void AxiDraw::mode_plot(const std::string &filename)
+void AxiDraw::modePlot(const std::string &filename)
 {
-	axidraw.attr("plot_setup")(
-			std::regex_match(filename, std::regex("https?://.*")) ? download_file(filename) : filename);
+	axiDraw.attr("plot_setup")(
+			std::regex_match(filename, std::regex("https?://.*")) ? downloadFile(filename) : filename);
 }
 
-void AxiDraw::run_plot()
+void AxiDraw::runPlot()
 {
-	axidraw.attr("plot_run")();
+	axiDraw.attr("plot_run")();
 }
 
 #pragma endregion
-

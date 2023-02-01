@@ -1,5 +1,6 @@
 #pragma once
 
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -20,45 +21,45 @@ public:
 	~AxiDraw();
 
 #pragma region General
-	void set_acceleration(double);
+	void setAcceleration(double);
 
-	void set_pen_up_position(double);
-	void set_pen_down_position(double);
+	void setPenUpPosition(double);
+	void setPenDownPosition(double);
 
-	void set_pen_up_delay(double);
-	void set_pen_down_delay(double);
+	void setPenUpDelay(double);
+	void setPenDownDelay(double);
 
-	void set_pen_up_speed(double);
-	void set_pen_down_speed(double);
+	void setPenUpSpeed(double);
+	void setPenDownSpeed(double);
 
-	void set_pen_up_rate(double);
-	void set_pen_down_rate(double);
+	void setPenUpRate(double);
+	void setPenDownRate(double);
 
-	void set_model(int);
-	void set_port(const std::string &);
+	void setModel(int);
+	void setPort(const std::string &);
 #pragma endregion
 
 #pragma region Interactive
-	void mode_interactive();
-	void set_units(int);
+	void modeInteractive();
+	void setUnits(int);
 
 	void connect();
 	void disconnect();
-	void update_options();
+	void updateOptions();
 
-	void pen_up();
-	void pen_down();
-	void pen_toggle();
+	void penUp();
+	void penDown();
+	void penToggle();
 
 	void home();
-	void go_to(double, double);
-	void go_to_relative(double, double);
+	void goTo(double, double);
+	void goToRelative(double, double);
 
-	void draw_path(std::vector<std::pair<double, double>>);
+	void drawPath(std::vector<std::pair<double, double>>);
 	void wait(double);
 
-	std::vector<double> get_position();
-	bool get_pen_status();
+	std::vector<double> getPosition();
+	bool getPenStatus();
 
 	/*
 	+--------------+----------------------------------------------------+
@@ -71,8 +72,8 @@ public:
 #pragma endregion
 
 #pragma region Plot
-	void mode_plot(const std::string &);
-	void run_plot();
+	void modePlot(const std::string &);
+	void runPlot();
 
 	/*
 	+--------------+----------------------------------------------------+
@@ -98,5 +99,5 @@ public:
 #pragma endregion
 
 private:
-	py::object axidraw;
+	py::object axiDraw;
 };

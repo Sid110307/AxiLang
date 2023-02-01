@@ -1,6 +1,6 @@
-# AxiLang v0.1.0 (unofficial)
+# AxiLang v0.2.0 (unofficial)
 
-> A simple language for controlling the [AxiDraw](https://axidraw.com/) plotter.
+> A scripting language for controlling the [AxiDraw](https://axiDraw.com/) plotter.
 
 ## Table of Contents
 
@@ -16,7 +16,8 @@
 - An [AxiDraw](https://shop.evilmadscientist.com/productsmenu/890) plotter
 - [CMake 3.2+](https://cmake.org/download/)
 - [Python 3.7+](https://www.python.org/downloads/)
-- [pyaxidraw](https://axidraw.com/doc/py_api/#installation)
+- [pyaxidraw](https://axiDraw.com/doc/py_api/#installation) (Just
+  run `pip install https://cdn.evilmadscientist.com/dl/ad/public/AxiDraw_API.zip`)
 - [Boost](https://www.boost.org/users/download/)
 
 ## Usage
@@ -43,7 +44,7 @@ $ cmake --build bin --clean-first --target all -j4
 - Run the executable
 
 ```bash
-$ ./bin/AxiLang
+$ ./bin/axilang
 ```
 
 ## Examples
