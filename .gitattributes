@@ -1,3 +1,5 @@
 * text=auto
-tests/* linguist-vendored
+
+# as MATLAB's syntax is very similar to AxiLang
+tests/* linguist-language=matlab
 
