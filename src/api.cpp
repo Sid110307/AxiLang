@@ -110,7 +110,7 @@ std::string AxiDraw::getMode()
 void AxiDraw::modeInteractive()
 {
 	axiDraw.attr("interactive")();
-	std::cout << "[\033[1;30mDEBUG\033[0m]: Set mode to interactive." << std::endl;
+	std::cout << "[\033[1;30mDEBUG\033[0m]: Mode is set to interactive." << std::endl;
 }
 
 void AxiDraw::setUnits(int units)
@@ -230,7 +230,7 @@ bool AxiDraw::getPen()
 void AxiDraw::modePlot(const std::string &filename)
 {
 	axiDraw.attr("plot_setup")(filename);
-	std::cout << "[\033[1;30mDEBUG\033[0m]: Set mode to plot." << std::endl;
+	std::cout << "[\033[1;30mDEBUG\033[0m]: Mode is set to plot." << std::endl;
 }
 
 void AxiDraw::runPlot()
