@@ -61,7 +61,7 @@ public:
 	std::pair<double, double> getPosition();
 	bool getPen();
 
-	/*
+	/* TODO: Add support for the following commands:
 	+--------------+----------------------------------------------------+
 	| Option       | Description                                        |
 	+--------------+----------------------------------------------------+
@@ -75,7 +75,7 @@ public:
 	void modePlot(const std::string &);
 	void runPlot();
 
-	/*
+	/* TODO: Add support for the following commands:
 	+--------------+----------------------------------------------------+
 	| Option       | Description                                        |
 	+--------------+----------------------------------------------------+
