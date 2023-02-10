@@ -1,0 +1,8 @@
+% Draw a square
+
+MODE I
+
+CONNECT
+GOTO 0 0
+DRAW 0 100 100 100 100 0 0 0
+DISCONNECT

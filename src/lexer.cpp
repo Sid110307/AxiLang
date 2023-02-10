@@ -1,6 +1,89 @@
-
-
 #include "include/lexer.h"
+
+std::string Token::typeToCStr()
+{
+	assert(Token::Type::EndOfFile == 36);
+
+	switch (type)
+	{
+		case Token::Type::Mode:
+			return "Mode";
+		case Token::Type::Opts:
+			return "Opts";
+		case Token::Type::EndOpts:
+			return "EndOpts";
+		case Token::Type::UOpts:
+			return "UOpts";
+		case Token::Type::EndUOpts:
+			return "EndUOpts";
+		case Token::Type::PlotMode:
+			return "PlotMode";
+		case Token::Type::InteractiveMode:
+			return "InteractiveMode";
+		case Token::Type::Acceleration:
+			return "Acceleration";
+		case Token::Type::PenUpPosition:
+			return "PenUpPosition";
+		case Token::Type::PenDownPosition:
+			return "PenDownPosition";
+		case Token::Type::PenUpDelay:
+			return "PenUpDelay";
+		case Token::Type::PenDownDelay:
+			return "PenDownDelay";
+		case Token::Type::PenUpSpeed:
+			return "PenUpSpeed";
+		case Token::Type::PenDownSpeed:
+			return "PenDownSpeed";
+		case Token::Type::PenUpRate:
+			return "PenUpRate";
+		case Token::Type::PenDownRate:
+			return "PenDownRate";
+		case Token::Type::Model:
+			return "Model";
+		case Token::Type::Port:
+			return "Port";
+		case Token::Type::Units:
+			return "Units";
+		case Token::Type::Connect:
+			return "Connect";
+		case Token::Type::Disconnect:
+			return "Disconnect";
+		case Token::Type::PenUp:
+			return "PenUp";
+		case Token::Type::PenDown:
+			return "PenDown";
+		case Token::Type::PenToggle:
+			return "PenToggle";
+		case Token::Type::Home:
+			return "Home";
+		case Token::Type::GoTo:
+			return "GoTo";
+		case Token::Type::GoToRelative:
+			return "GoToRelative";
+		case Token::Type::Draw:
+			return "Draw";
+		case Token::Type::Wait:
+			return "Wait";
+		case Token::Type::GetPos:
+			return "GetPos";
+		case Token::Type::GetPen:
+			return "GetPen";
+		case Token::Type::SetPlot:
+			return "SetPlot";
+		case Token::Type::Plot:
+			return "Plot";
+		case Token::Type::Number:
+			return "Number";
+		case Token::Type::String:
+			return "String";
+		case Token::Type::Unknown:
+			return "Unknown";
+		case Token::Type::EndOfFile:
+			return "EndOfFile";
+		default:
+			throw std::runtime_error("Invalid token type.");
+	}
+}
 
 Lexer::Lexer(const std::string &path)
 {
@@ -27,10 +110,12 @@ Lexer::~Lexer()
 
 Token Lexer::nextToken()
 {
+	assert(Token::Type::EndOfFile == 36);
+
 	if (linePos >= (int) line.length())
 	{
 		if (file.eof())
-			return Token(Token::Type::EndOfFile, "");
+			return Token(Token::Type::EndOfFile, "EOF");
 
 		std::getline(file, line);
 		lineNum++;
@@ -77,12 +162,28 @@ Token Lexer::nextToken()
 			return Token(Token::Type::String, value);
 		}
 
-		std::cerr << "[\033[1;31mERROR\033[0m]: Unknown token '" << value << "' on line " << lineNum << "."
-				  << std::endl;
+		std::cerr << "[\033[1;31mERROR\033[0m]: Unknown token '" << value << "' on line " << lineNum << ".\n  "
+				  << line << "\n  " << std::string(linePos - value.length(), ' ') << "\033[1;31m"
+				  << std::string(value.length(), '^') << "\033[0m" << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
 	return Token(type, value);
+}
+
+int Lexer::getLineNumber() const
+{
+	return lineNum;
+}
+
+int Lexer::getLinePosition() const
+{
+	return linePos;
+}
+
+std::string Lexer::getLine() const
+{
+	return line;
 }
 
 Token::Type Lexer::getTokenType(const std::string &value)

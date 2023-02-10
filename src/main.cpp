@@ -1,15 +1,15 @@
 #include <iostream>
-#include <fstream>
 
 #include <boost/program_options.hpp>
 
 #include "include/lexer.h"
+#include "include/parser.h"
 
-#define VERSION "0.2.0"
+#define VERSION "0.5.0"
 
 namespace po = boost::program_options;
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
 	std::string fileName;
 
@@ -32,8 +32,7 @@ int main(int argc, char *argv[])
 	if (vm.count("help"))
 	{
 		std::cout << "AxiLang (unofficial) - A scripting language for controlling the AxiDraw plotter.\n"
-				  << "Version " << VERSION << "\n"
-				  << description << std::endl;
+				  << "Version " << VERSION << "\n" << description << std::endl;
 		return EXIT_SUCCESS;
 	}
 
@@ -67,14 +66,24 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
+	std::cout << "[\033[1;30mDEBUG\033[0m]: Parsing file '" << fileName << "'." << std::endl;
+
 	Lexer lexer(fileName);
 	Token token = lexer.nextToken();
 
+	FileState fileState;
 	while (token.type != Token::Type::EndOfFile)
 	{
-		std::cout << token.type << ": " << token.value << std::endl;
+		fileState.tokens.push_back(token);
+		fileState.lines.push_back(lexer.getLine());
+		fileState.lineNums.push_back(lexer.getLineNumber());
+		fileState.linePositions.push_back(lexer.getLinePosition());
+
 		token = lexer.nextToken();
 	}
+
+	Parser parser(fileState);
+	parser.parse();
 
 	inFile.close();
 	return EXIT_SUCCESS;

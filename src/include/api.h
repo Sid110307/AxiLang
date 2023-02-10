@@ -8,17 +8,15 @@
 
 #include <boost/python.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/asio.hpp>
 
 namespace py = boost::python;
-namespace asio = boost::asio;
 namespace fs = boost::filesystem;
 
 class AxiDraw
 {
 public:
 	AxiDraw();
-	~AxiDraw();
+	~AxiDraw() = default;
 
 #pragma region General
 	void setAcceleration(double);
@@ -37,6 +35,8 @@ public:
 
 	void setModel(int);
 	void setPort(const std::string &);
+
+	std::string getMode();
 #pragma endregion
 
 #pragma region Interactive
@@ -55,11 +55,11 @@ public:
 	void goTo(double, double);
 	void goToRelative(double, double);
 
-	void drawPath(std::vector<std::pair<double, double>>);
+	void draw(std::vector<std::pair<double, double>> path);
 	void wait(double);
 
-	std::vector<double> getPosition();
-	bool getPenStatus();
+	std::pair<double, double> getPosition();
+	bool getPen();
 
 	/*
 	+--------------+----------------------------------------------------+
@@ -96,6 +96,26 @@ public:
 	| webhook_url  | URL for webhook alerts.                            |
 	+--------------+----------------------------------------------------+
 	*/
+#pragma endregion
+
+	#pragma region Enums
+	enum Units
+	{
+		Inches = 0,
+		Centimeters = 1,
+		Millimeters = 2,
+	};
+
+	enum Models
+	{
+		V2_V3_SEA4 = 1,
+		V3A3_SEA3 = 2,
+		V3_XLX = 3,
+		MiniKit = 4,
+		SEA1 = 5,
+		SEA2 = 6,
+		V3B6 = 7,
+	};
 #pragma endregion
 
 private:

@@ -1,5 +1,4 @@
 * text=auto
 
-# as MATLAB's syntax is very similar to AxiLang
+# As MATLAB's syntax is very similar to AxiLang
 tests/* linguist-language=matlab
-

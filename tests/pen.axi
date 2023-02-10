@@ -1,8 +1,9 @@
-% Raise and Lower Pen
+% Raise and lower pen
 
 MODE I
 
 CONNECT
-PENUP
 PENDOWN
+WAIT 1000
+PENUP
 DISCONNECT

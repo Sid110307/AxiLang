@@ -1,8 +1,6 @@
 #pragma once
 
-/*
- * Create a lexer for a given .axi file (AxiDraw).
- * Syntax:
+/* Syntax:
 
 Comments:
   %Line comment
@@ -71,10 +69,8 @@ Typical file structure:
 #include <vector>
 
 #include <boost/filesystem.hpp>
-#include <boost/asio.hpp>
 
 namespace fs = boost::filesystem;
-namespace asio = boost::asio;
 
 struct Token
 {
@@ -138,6 +134,15 @@ struct Token
 	std::string value;
 
 	Token(Type type, std::string value) : type(type), value(std::move(value)) {}
+	std::string typeToCStr();
+};
+
+struct FileState
+{
+	std::vector<Token> tokens;
+	std::vector<std::string> lines;
+	std::vector<int> lineNums;
+	std::vector<int> linePositions;
 };
 
 class Lexer
@@ -147,6 +152,10 @@ public:
 	~Lexer();
 
 	Token nextToken();
+
+	int getLineNumber() const;
+	int getLinePosition() const;
+	std::string getLine() const;
 
 private:
 	std::ifstream file;
