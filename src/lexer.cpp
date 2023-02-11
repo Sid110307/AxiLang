@@ -4,96 +4,61 @@ std::string Token::typeToCStr()
 {
 	assert(Token::Type::EndOfFile == 36);
 
-	switch (type)
-	{
-		case Token::Type::Mode:
-			return "Mode";
-		case Token::Type::Opts:
-			return "Opts";
-		case Token::Type::EndOpts:
-			return "EndOpts";
-		case Token::Type::UOpts:
-			return "UOpts";
-		case Token::Type::EndUOpts:
-			return "EndUOpts";
-		case Token::Type::PlotMode:
-			return "PlotMode";
-		case Token::Type::InteractiveMode:
-			return "InteractiveMode";
-		case Token::Type::Acceleration:
-			return "Acceleration";
-		case Token::Type::PenUpPosition:
-			return "PenUpPosition";
-		case Token::Type::PenDownPosition:
-			return "PenDownPosition";
-		case Token::Type::PenUpDelay:
-			return "PenUpDelay";
-		case Token::Type::PenDownDelay:
-			return "PenDownDelay";
-		case Token::Type::PenUpSpeed:
-			return "PenUpSpeed";
-		case Token::Type::PenDownSpeed:
-			return "PenDownSpeed";
-		case Token::Type::PenUpRate:
-			return "PenUpRate";
-		case Token::Type::PenDownRate:
-			return "PenDownRate";
-		case Token::Type::Model:
-			return "Model";
-		case Token::Type::Port:
-			return "Port";
-		case Token::Type::Units:
-			return "Units";
-		case Token::Type::Connect:
-			return "Connect";
-		case Token::Type::Disconnect:
-			return "Disconnect";
-		case Token::Type::PenUp:
-			return "PenUp";
-		case Token::Type::PenDown:
-			return "PenDown";
-		case Token::Type::PenToggle:
-			return "PenToggle";
-		case Token::Type::Home:
-			return "Home";
-		case Token::Type::GoTo:
-			return "GoTo";
-		case Token::Type::GoToRelative:
-			return "GoToRelative";
-		case Token::Type::Draw:
-			return "Draw";
-		case Token::Type::Wait:
-			return "Wait";
-		case Token::Type::GetPos:
-			return "GetPos";
-		case Token::Type::GetPen:
-			return "GetPen";
-		case Token::Type::SetPlot:
-			return "SetPlot";
-		case Token::Type::Plot:
-			return "Plot";
-		case Token::Type::Number:
-			return "Number";
-		case Token::Type::String:
-			return "String";
-		case Token::Type::Unknown:
-			return "Unknown";
-		case Token::Type::EndOfFile:
-			return "EndOfFile";
-		default:
-			throw std::runtime_error("Invalid token type.");
-	}
+	static const std::map<Token::Type, std::string> tokenMap = {
+			{Token::Type::Mode,            "Mode"},
+			{Token::Type::Opts,            "Opts"},
+			{Token::Type::EndOpts,         "EndOpts"},
+			{Token::Type::UOpts,           "UOpts"},
+			{Token::Type::EndUOpts,        "EndUOpts"},
+			{Token::Type::PlotMode,        "PlotMode"},
+			{Token::Type::InteractiveMode, "InteractiveMode"},
+			{Token::Type::Acceleration,    "Acceleration"},
+			{Token::Type::PenUpPosition,   "PenUpPosition"},
+			{Token::Type::PenDownPosition, "PenDownPosition"},
+			{Token::Type::PenUpDelay,      "PenUpDelay"},
+			{Token::Type::PenDownDelay,    "PenDownDelay"},
+			{Token::Type::PenUpSpeed,      "PenUpSpeed"},
+			{Token::Type::PenDownSpeed,    "PenDownSpeed"},
+			{Token::Type::PenUpRate,       "PenUpRate"},
+			{Token::Type::PenDownRate,     "PenDownRate"},
+			{Token::Type::Model,           "Model"},
+			{Token::Type::Port,            "Port"},
+			{Token::Type::Units,           "Units"},
+			{Token::Type::Connect,         "Connect"},
+			{Token::Type::Disconnect,      "Disconnect"},
+			{Token::Type::PenUp,           "PenUp"},
+			{Token::Type::PenDown,         "PenDown"},
+			{Token::Type::PenToggle,       "PenToggle"},
+			{Token::Type::Home,            "Home"},
+			{Token::Type::GoTo,            "GoTo"},
+			{Token::Type::GoToRelative,    "GoToRelative"},
+			{Token::Type::Draw,            "Draw"},
+			{Token::Type::Wait,            "Wait"},
+			{Token::Type::GetPos,          "GetPos"},
+			{Token::Type::GetPen,          "GetPen"},
+			{Token::Type::SetPlot,         "SetPlot"},
+			{Token::Type::Plot,            "Plot"},
+			{Token::Type::Number,          "Number"},
+			{Token::Type::String,          "String"},
+			{Token::Type::Unknown,         "Unknown"},
+			{Token::Type::EndOfFile,       "EndOfFile"},
+	};
+
+	auto it = tokenMap.find(type);
+	if (it == tokenMap.end()) throw std::runtime_error("Invalid token type.");
+
+	return it->second;
 }
 
 Lexer::Lexer(const std::string &path)
 {
-	if (!fs::exists(path))
+	if (!filesys::exists(path))
 	{
 		std::cerr << "[\033[1;31mERROR\033[0m]: File does not exist." << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
-	if (fs::file_size(path) == 0)
+	if (filesys::file_size(path) == 0)
 	{
 		std::cerr << "[\033[1;31mERROR\033[0m]: File is empty." << std::endl;
 		exit(EXIT_FAILURE);

@@ -1,16 +1,12 @@
 #pragma once
 
-#include <fstream>
-#include <iostream>
-#include <string>
-#include <vector>
-#include <regex>
-
 #include <boost/python.hpp>
 #include <boost/filesystem.hpp>
 
+#include <iostream>
+
 namespace py = boost::python;
-namespace fs = boost::filesystem;
+namespace filesys = boost::filesystem;
 
 class AxiDraw
 {

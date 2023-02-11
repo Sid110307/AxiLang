@@ -1,10 +1,9 @@
 #pragma once
 
-#include <curl/curl.h>
+#include "utils.h"
 
-#include "lexer.h"
-#include "api.h"
-#include "enumerator.h"
+#include <regex>
+#include <curl/curl.h>
 
 class Parser
 {

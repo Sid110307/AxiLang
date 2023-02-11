@@ -1,11 +1,8 @@
-#include <iostream>
-
 #include <boost/program_options.hpp>
+#include <iostream>
 
 #include "include/lexer.h"
 #include "include/parser.h"
-
-#define VERSION "0.5.0"
 
 namespace po = boost::program_options;
 
@@ -32,13 +29,13 @@ int main(int argc, char* argv[])
 	if (vm.count("help"))
 	{
 		std::cout << "AxiLang (unofficial) - A scripting language for controlling the AxiDraw plotter.\n"
-				  << "Version " << VERSION << "\n" << description << std::endl;
+				  << "Version " << PROJECT_VERSION << "\n" << description << std::endl;
 		return EXIT_SUCCESS;
 	}
 
 	if (vm.count("version"))
 	{
-		std::cout << "Version " << VERSION << std::endl;
+		std::cout << "Version " << PROJECT_VERSION << std::endl;
 		return EXIT_SUCCESS;
 	}
 

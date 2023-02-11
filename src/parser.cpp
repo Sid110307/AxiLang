@@ -1,9 +1,5 @@
 #include "include/parser.h"
 
-#ifndef MAX_REDIRECTS
-#define MAX_REDIRECTS 5
-#endif
-
 void Parser::checkInteractive(std::string functionName)
 {
 	if (!isModeSet)
@@ -101,7 +97,7 @@ static std::string downloadFile(const std::string &url, int redirectLevel = 1)
 	std::cout << "[\033[1;30mDEBUG\033[0m]: " << std::string(redirectLevel * 2, ' ') << "Creating temporary file."
 			  << std::endl;
 
-	fs::path temp = fs::temp_directory_path() / fs::unique_path();
+	filesys::path temp = filesys::temp_directory_path() / filesys::unique_path();
 	std::ofstream file;
 	file.open(temp.string(), std::ios::out | std::ios::binary);
 
@@ -492,35 +488,48 @@ void Parser::parse()
 			}
 			case Token::Type::Draw:
 			{
-//				TODO: Fix `DRAW` command
-//				checkInteractive("DRAW");
-//
-//				std::vector<std::pair<double, double>> points;
-//				Token nextToken = fileState.tokens[token.index + 1];
-//
-//				while (nextToken.type == Token::Type::Number)
-//				{
-//					std::pair<double, double> point;
-//					point.first = std::stod(nextToken.value);
-//					nextToken = fileState.tokens[token.index + 1];
-//
-//					if (nextToken.type == Token::Type::Number)
-//					{
-//						point.second = std::stod(nextToken.value);
-//						nextToken = fileState.tokens[token.index + 1];
-//					} else
-//					{
-//						std::cerr << "[\033[1;31mERROR\033[0m]: Invalid Y coordinate specified.\n"
-//								  << "Usage: DRAW <X> <Y> <X> <Y> ..." << std::endl;
-//						exit(EXIT_FAILURE);
-//					}
-//
-//					points.push_back(point);
-//				}
-//
-//				axiDraw.draw(points);
+				checkInteractive("DRAW");
 
-				std::cout << "[\033[1;33mWARNING\033[0m]: The `DRAW` command is not yet implemented." << std::endl;
+				std::vector<std::pair<double, double>> points;
+				size_t index = token.index + 1;
+				while (index < fileState.tokens.size())
+				{
+					Token nextToken = fileState.tokens[index];
+					if (nextToken.type == Token::Type::Number)
+					{
+						double x = std::stod(nextToken.value);
+						index++;
+
+						if (index < fileState.tokens.size())
+						{
+							nextToken = fileState.tokens[index];
+							if (nextToken.type == Token::Type::Number)
+							{
+								double y = std::stod(nextToken.value);
+								index++;
+
+								points.push_back(std::make_pair(x, y));
+							} else
+							{
+								std::cerr << "[\033[1;31mERROR\033[0m]: Invalid Y coordinate specified.\n"
+										  << "Usage: DRAW <X> <Y> <X> <Y> ..." << std::endl;
+								exit(EXIT_FAILURE);
+							}
+						} else
+						{
+							std::cerr << "[\033[1;31mERROR\033[0m]: Invalid number of coordinates specified.\n"
+									  << "Usage: DRAW <X> <Y> <X> <Y> ..." << std::endl;
+							exit(EXIT_FAILURE);
+						}
+					} else
+					{
+						std::cerr << "[\033[1;31mERROR\033[0m]: Invalid X coordinate specified.\n"
+								  << "Usage: DRAW <X> <Y> <X> <Y> ..." << std::endl;
+						exit(EXIT_FAILURE);
+					}
+				}
+
+				axiDraw.draw(points);
 				break;
 			}
 			case Token::Type::Wait:
@@ -555,6 +564,12 @@ void Parser::parse()
 			}
 			case Token::Type::SetPlot:
 			{
+				if (!isModePlot)
+				{
+					std::cerr << "[\033[1;31mERROR\033[0m]: SETPLOT can only be used in plot mode." << std::endl;
+					exit(EXIT_FAILURE);
+				}
+
 				std::string filePath = fileState.tokens[token.index + 1].value;
 				if (filePath.empty())
 				{

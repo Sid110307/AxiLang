@@ -92,7 +92,7 @@ void AxiDraw::setModel(int model)
 
 void AxiDraw::setPort(const std::string &port)
 {
-	axiDraw.attr("options").attr("port") = port == "auto" ? py::object() : py::str(port);
+	axiDraw.attr("options").attr("port") = port != "auto" ? py::str(port) : py::object();
 	std::cout << "[\033[1;30mDEBUG\033[0m]: Set port to " << port << "." << std::endl;
 }
 

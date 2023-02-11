@@ -1,15 +1,11 @@
 #pragma once
 
 #include "api.h"
-#include <iostream>
+
 #include <fstream>
-#include <string>
-#include <utility>
-#include <vector>
+#include <map>
 
-#include <boost/filesystem.hpp>
-
-namespace fs = boost::filesystem;
+namespace filesys = boost::filesystem;
 
 struct Token
 {
