@@ -2,19 +2,10 @@
 
 void Parser::checkInteractive(std::string functionName)
 {
-	if (!isModeSet)
-	{
-		std::cerr << "[\033[1;31mERROR\033[0m]: No mode specified. Please set a mode first.\n"
-				  << "Usage: MODE <I|P>" << std::endl;
-		exit(EXIT_FAILURE);
-	}
-
+	if (!isModeSet)Log(Log::Type::Error, "No mode specified. Please set a mode first.\nUsage: MODE <I|P>", fileState);
 	if (axiDraw.getMode() != "interactive")
-	{
-		std::cerr << "[\033[1;31mERROR\033[0m]: " << functionName << " can only be used in interactive mode."
-				  << std::endl;
-		exit(EXIT_FAILURE);
-	}
+		Log(Log::Type::Error, functionName + " can only be used in interactive mode.", fileState);
+
 }
 
 static size_t writeCallback(char* contents, size_t size, size_t nmemb, std::string* buffer)
@@ -46,22 +37,13 @@ static std::string downloadFile(const std::string &url, int redirectLevel = 1)
 		return cleanedText;
 	};
 
-	if (redirectLevel > MAX_REDIRECTS)
-	{
-		std::cerr << "[\033[1;31mERROR\033[0m]: Too many redirects." << std::endl;
-		exit(EXIT_FAILURE);
-	}
+	if (redirectLevel > MAX_REDIRECTS) Log(Log::Type::Fatal, "Too many redirects.");
 
-	std::cout << "[\033[1;30mDEBUG\033[0m]: " << std::string(redirectLevel * 2, ' ') << "Downloading file from \""
-			  << cleanText(url) << "\"." << std::endl;
-	std::cout << "[\033[1;30mDEBUG\033[0m]: " << std::string(redirectLevel * 2, ' ') << "Resolving URL." << std::endl;
+	Log(Log::Type::Debug, std::string(redirectLevel * 2, ' ') + "Downloading file from \"" + cleanText(url) + "\".");
+	Log(Log::Type::Debug, std::string(redirectLevel * 2, ' ') + "Resolving URL.");
 
 	CURL* curl = curl_easy_init();
-	if (!curl)
-	{
-		std::cerr << "[\033[1;31mERROR\033[0m]: Could not initialize cURL." << std::endl;
-		exit(EXIT_FAILURE);
-	}
+	if (!curl) Log(Log::Type::Fatal, "Could not initialize cURL.");
 
 	std::string buffer;
 	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
@@ -72,12 +54,7 @@ static std::string downloadFile(const std::string &url, int redirectLevel = 1)
 	curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
 
 	CURLcode res = curl_easy_perform(curl);
-	if (res != CURLE_OK)
-	{
-		std::cerr << "[\033[1;31mERROR\033[0m]: Could not download file from \"" << cleanText(url) << "\"."
-				  << std::endl;
-		exit(EXIT_FAILURE);
-	}
+	if (res != CURLE_OK) Log(Log::Type::Fatal, "Could not download file from \"" + cleanText(url) + "\".");
 
 	long responseCode;
 	curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &responseCode);
@@ -86,32 +63,27 @@ static std::string downloadFile(const std::string &url, int redirectLevel = 1)
 		char* redirectUrl;
 		curl_easy_getinfo(curl, CURLINFO_REDIRECT_URL, &redirectUrl);
 
-		std::cout << "[\033[1;30mDEBUG\033[0m]: " << std::string(redirectLevel * 2, ' ') << "Redirecting to \""
-				  << cleanText(redirectUrl) << "\"." << std::endl;
+		Log(Log::Type::Debug,
+			std::string(redirectLevel * 2, ' ') + "Redirecting to \"" + cleanText(redirectUrl) + "\".");
 		curl_easy_cleanup(curl);
 
 		return downloadFile(redirectUrl, redirectLevel + 1);
 	}
 
 	curl_easy_cleanup(curl);
-	std::cout << "[\033[1;30mDEBUG\033[0m]: " << std::string(redirectLevel * 2, ' ') << "Creating temporary file."
-			  << std::endl;
+	Log(Log::Type::Debug, std::string(redirectLevel * 2, ' ') + "Creating temporary file.");
 
 	filesys::path temp = filesys::temp_directory_path() / filesys::unique_path();
 	std::ofstream file;
 	file.open(temp.string(), std::ios::out | std::ios::binary);
 
 	if (!file.is_open())
-	{
-		std::cerr << "[\033[1;31mERROR\033[0m]: Could not create temporary file for plot." << std::endl;
-		exit(EXIT_FAILURE);
-	}
+		Log(Log::Type::Fatal, std::string(redirectLevel * 2, ' ') + "Could not create temporary file for plot.");
 
 	file << buffer;
 	file.close();
 
-	std::cout << "[\033[1;30mDEBUG\033[0m]: " << std::string(redirectLevel * 2, ' ') << "Saved to: " << temp.string()
-			  << std::endl;
+	Log(Log::Type::Debug, std::string(redirectLevel * 2, ' ') + "Saved to: " + temp.string());
 	return temp.string();
 }
 
@@ -140,20 +112,14 @@ void Parser::parse()
 
 						break;
 					default:
-						std::cerr << "[\033[1;31mERROR\033[0m]: Invalid mode specified.\n"
-								  << "Usage: MODE <I|P>" << std::endl;
-						exit(EXIT_FAILURE);
+						Log(Log::Type::Error, "Invalid mode specified.\nUsage: MODE <I|P>", fileState);
 				}
 				break;
 			}
 			case Token::Type::Opts:
 			{
 				if (!isModeSet)
-				{
-					std::cerr << "[\033[1;31mERROR\033[0m]: No mode specified. Please set a mode first.\n"
-							  << "Usage: MODE <I|P>" << std::endl;
-					exit(EXIT_FAILURE);
-				}
+					Log(Log::Type::Error, "No mode specified. Please set a mode first.\nUsage: MODE <I|P>", fileState);
 
 				switch (fileState.tokens[token.index + 1].type)
 				{
@@ -193,20 +159,15 @@ void Parser::parse()
 					case Token::Type::Units:
 						if (axiDraw.getMode() == "interactive")
 							axiDraw.setUnits(std::stoi(fileState.tokens[token.index + 1].value));
-						else
-						{
-							std::cerr << "[\033[1;31mERROR\033[0m]: UNITS can only be set in interactive mode."
-									  << std::endl;
-							exit(EXIT_FAILURE);
-						}
+						else Log(Log::Type::Error, "UNITS can only be set in interactive mode.", fileState);
 						break;
 					case Token::Type::EndOpts:
 						break;
 					default:
-						std::cerr << "[\033[1;31mERROR\033[0m]: Invalid option specified.\n"
-								  << "Usage: OPTS <OPTIONS> <VALUE>\n"
-								  << "Options: ACCEL, PENU_POS, PEND_POS, PENU_DELAY, PEND_DELAY, PENU_SPEED, PEND_SPEED, PENU_RATE, PEND_RATE, MODEL, PORT"
-								  << (axiDraw.getMode() == "interactive" ? ", UNITS" : "") << std::endl;
+						Log(Log::Type::Error, std::string(
+								"Invalid option specified.\nUsage: OPTS <OPTIONS> <VALUE>\nOptions: ACCEL, PENU_POS, "
+								"PEND_POS, PENU_DELAY, PEND_DELAY, PENU_SPEED, PEND_SPEED, PENU_RATE, PEND_RATE, MODEL, "
+								"PORT") + (axiDraw.getMode() == "interactive" ? ", UNITS" : ""), fileState);
 						return;
 				}
 				break;
@@ -221,12 +182,7 @@ void Parser::parse()
 					{
 						Token next = fileState.tokens[token.index + 1];
 						if (next.type == Token::Type::Number) axiDraw.setAcceleration(std::stoi(next.value));
-						else
-						{
-							std::cerr << "[\033[1;31mERROR\033[0m]: Invalid acceleration specified.\n"
-									  << "Usage: ACCEL <VALUE>" << std::endl;
-							exit(EXIT_FAILURE);
-						}
+						else Log(Log::Type::Error, "Invalid acceleration specified.\nUsage: ACCEL <VALUE>", fileState);
 
 						break;
 					}
@@ -235,11 +191,8 @@ void Parser::parse()
 						Token next = fileState.tokens[token.index + 1];
 						if (next.type == Token::Type::Number) axiDraw.setPenUpPosition(std::stoi(next.value));
 						else
-						{
-							std::cerr << "[\033[1;31mERROR\033[0m]: Invalid raised pen position specified.\n"
-									  << "Usage: PENU_POS <VALUE>" << std::endl;
-							exit(EXIT_FAILURE);
-						}
+							Log(Log::Type::Error, "Invalid raised pen position specified.\nUsage: PENU_POS <VALUE>",
+								fileState);
 
 						break;
 					}
@@ -248,11 +201,8 @@ void Parser::parse()
 						Token next = fileState.tokens[token.index + 1];
 						if (next.type == Token::Type::Number) axiDraw.setPenDownPosition(std::stoi(next.value));
 						else
-						{
-							std::cerr << "[\033[1;31mERROR\033[0m]: Invalid lowered pen position specified.\n"
-									  << "Usage: PEND_POS <VALUE>" << std::endl;
-							exit(EXIT_FAILURE);
-						}
+							Log(Log::Type::Error, "Invalid lowered pen position specified.\nUsage: PEND_POS <VALUE>",
+								fileState);
 
 						break;
 					}
@@ -261,11 +211,8 @@ void Parser::parse()
 						Token next = fileState.tokens[token.index + 1];
 						if (next.type == Token::Type::Number) axiDraw.setPenUpDelay(std::stoi(next.value));
 						else
-						{
-							std::cerr << "[\033[1;31mERROR\033[0m]: Invalid pen raise delay specified.\n"
-									  << "Usage: PENU_DELAY <VALUE>" << std::endl;
-							exit(EXIT_FAILURE);
-						}
+							Log(Log::Type::Error, "Invalid pen raise delay specified.\nUsage: PENU_DELAY <VALUE>",
+								fileState);
 
 						break;
 					}
@@ -274,11 +221,8 @@ void Parser::parse()
 						Token next = fileState.tokens[token.index + 1];
 						if (next.type == Token::Type::Number) axiDraw.setPenDownDelay(std::stoi(next.value));
 						else
-						{
-							std::cerr << "[\033[1;31mERROR\033[0m]: Invalid pen lower delay specified.\n"
-									  << "Usage: PEND_DELAY <VALUE>" << std::endl;
-							exit(EXIT_FAILURE);
-						}
+							Log(Log::Type::Error, "Invalid pen lower delay specified.\nUsage: PEND_DELAY <VALUE>",
+								fileState);
 
 						break;
 					}
@@ -287,11 +231,8 @@ void Parser::parse()
 						Token next = fileState.tokens[token.index + 1];
 						if (next.type == Token::Type::Number) axiDraw.setPenUpSpeed(std::stoi(next.value));
 						else
-						{
-							std::cerr << "[\033[1;31mERROR\033[0m]: Invalid pen raise speed specified.\n"
-									  << "Usage: PENU_SPEED <VALUE>" << std::endl;
-							exit(EXIT_FAILURE);
-						}
+							Log(Log::Type::Error, "Invalid pen raise speed specified.\nUsage: PENU_SPEED <VALUE>",
+								fileState);
 
 						break;
 					}
@@ -300,11 +241,8 @@ void Parser::parse()
 						Token next = fileState.tokens[token.index + 1];
 						if (next.type == Token::Type::Number) axiDraw.setPenDownSpeed(std::stoi(next.value));
 						else
-						{
-							std::cerr << "[\033[1;31mERROR\033[0m]: Invalid pen lower speed specified.\n"
-									  << "Usage: PEND_SPEED <VALUE>" << std::endl;
-							exit(EXIT_FAILURE);
-						}
+							Log(Log::Type::Error, "Invalid pen lower speed specified.\nUsage: PEND_SPEED <VALUE>",
+								fileState);
 
 						break;
 					}
@@ -313,11 +251,8 @@ void Parser::parse()
 						Token next = fileState.tokens[token.index + 1];
 						if (next.type == Token::Type::Number) axiDraw.setPenUpRate(std::stoi(next.value));
 						else
-						{
-							std::cerr << "[\033[1;31mERROR\033[0m]: Invalid pen raise rate specified.\n"
-									  << "Usage: PENU_RATE <VALUE>" << std::endl;
-							exit(EXIT_FAILURE);
-						}
+							Log(Log::Type::Error, "Invalid pen raise rate specified.\nUsage: PENU_RATE <VALUE>",
+								fileState);
 
 						break;
 					}
@@ -326,11 +261,8 @@ void Parser::parse()
 						Token next = fileState.tokens[token.index + 1];
 						if (next.type == Token::Type::Number) axiDraw.setPenDownRate(std::stoi(next.value));
 						else
-						{
-							std::cerr << "[\033[1;31mERROR\033[0m]: Invalid pen lower rate specified.\n"
-									  << "Usage: PEND_RATE <VALUE>" << std::endl;
-							exit(EXIT_FAILURE);
-						}
+							Log(Log::Type::Error, "Invalid pen lower rate specified.\nUsage: PEND_RATE <VALUE>",
+								fileState);
 
 						break;
 					}
@@ -338,12 +270,7 @@ void Parser::parse()
 					{
 						Token next = fileState.tokens[token.index + 1];
 						if (next.type == Token::Type::Number) axiDraw.setModel(std::stoi(next.value));
-						else
-						{
-							std::cerr << "[\033[1;31mERROR\033[0m]: Invalid model specified.\n"
-									  << "Usage: MODEL <VALUE>" << std::endl;
-							exit(EXIT_FAILURE);
-						}
+						else Log(Log::Type::Error, "Invalid model specified.\nUsage: MODEL <VALUE>", fileState);
 
 						break;
 					}
@@ -351,12 +278,7 @@ void Parser::parse()
 					{
 						Token next = fileState.tokens[token.index + 1];
 						if (next.type == Token::Type::String) axiDraw.setPort(next.value);
-						else
-						{
-							std::cerr << "[\033[1;31mERROR\033[0m]: Invalid port specified.\n"
-									  << "Usage: PORT \"<VALUE>\"" << std::endl;
-							exit(EXIT_FAILURE);
-						}
+						else Log(Log::Type::Error, "Invalid port specified.\nUsage: PORT \"<VALUE>\"", fileState);
 
 						break;
 					}
@@ -364,23 +286,16 @@ void Parser::parse()
 					{
 						Token next = fileState.tokens[token.index + 1];
 						if (next.type == Token::Type::Number) axiDraw.setUnits(std::stoi(next.value));
-						else
-						{
-							std::cerr << "[\033[1;31mERROR\033[0m]: Invalid units specified.\n"
-									  << "Usage: UNITS <VALUE>" << std::endl;
-							exit(EXIT_FAILURE);
-						}
+						else Log(Log::Type::Error, "Invalid units specified.\nUsage: UNITS <VALUE>", fileState);
 
 						break;
 					}
 					case Token::Type::EndUOpts:
 						break;
 					default:
-						std::cerr << "[\033[1;31mERROR\033[0m]: Invalid option specified.\n"
-								  << "Usage: UOPTS <OPTIONS> <VALUE>\n"
-								  << "Options: ACCEL, PENU_POS, PEND_POS, PENU_DELAY, PEND_DELAY, PENU_SPEED, PEND_SPEED, PENU_RATE, PEND_RATE, MODEL, PORT, UNITS"
-								  << std::endl;
-						exit(EXIT_FAILURE);
+						Log(Log::Type::Error, "Invalid option specified.\nUsage: UOPTS <OPTIONS> <VALUE>\n"
+											  "Options: ACCEL, PENU_POS, PEND_POS, PENU_DELAY, PEND_DELAY, PENU_SPEED, "
+											  "PEND_SPEED, PENU_RATE, PEND_RATE, MODEL, PORT, UNITS", fileState);
 				}
 
 				axiDraw.updateOptions();
@@ -439,20 +354,10 @@ void Parser::parse()
 				{
 					point.first = std::stod(nextToken.value);
 					nextToken = fileState.tokens[token.index + 1];
-				} else
-				{
-					std::cerr << "[\033[1;31mERROR\033[0m]: Invalid X coordinate specified.\n"
-							  << "Usage: GOTO <X> <Y>" << std::endl;
-					exit(EXIT_FAILURE);
-				}
+				} else Log(Log::Type::Error, "Invalid X coordinate specified.\nUsage: GOTO <X> <Y>", fileState);
 
 				if (nextToken.type == Token::Type::Number) point.second = std::stod(nextToken.value);
-				else
-				{
-					std::cerr << "[\033[1;31mERROR\033[0m]: Invalid Y coordinate specified.\n"
-							  << "Usage: GOTO <X> <Y>" << std::endl;
-					exit(EXIT_FAILURE);
-				}
+				else Log(Log::Type::Error, "Invalid Y coordinate specified.\nUsage: GOTO <X> <Y>", fileState);
 
 				axiDraw.goTo(point.first, point.second);
 				break;
@@ -468,20 +373,10 @@ void Parser::parse()
 				{
 					point.first = std::stod(nextToken.value);
 					nextToken = fileState.tokens[token.index + 1];
-				} else
-				{
-					std::cerr << "[\033[1;31mERROR\033[0m]: Invalid X coordinate specified.\n"
-							  << "Usage: GOTO_REL <X> <Y>" << std::endl;
-					exit(EXIT_FAILURE);
-				}
+				} else Log(Log::Type::Error, "Invalid X coordinate specified.\nUsage: GOTO_REL <X> <Y>", fileState);
 
 				if (nextToken.type == Token::Type::Number) point.second = std::stod(nextToken.value);
-				else
-				{
-					std::cerr << "[\033[1;31mERROR\033[0m]: Invalid Y coordinate specified.\n"
-							  << "Usage: GOTO_REL <X> <Y>" << std::endl;
-					exit(EXIT_FAILURE);
-				}
+				else Log(Log::Type::Error, "Invalid Y coordinate specified.\nUsage: GOTO_REL <X> <Y>", fileState);
 
 				axiDraw.goToRelative(point.first, point.second);
 				break;
@@ -509,24 +404,15 @@ void Parser::parse()
 								index++;
 
 								points.push_back(std::make_pair(x, y));
-							} else
-							{
-								std::cerr << "[\033[1;31mERROR\033[0m]: Invalid Y coordinate specified.\n"
-										  << "Usage: DRAW <X> <Y> <X> <Y> ..." << std::endl;
-								exit(EXIT_FAILURE);
 							}
+							Log(Log::Type::Error, "Invalid Y coordinate specified.\nUsage: DRAW <X> <Y> <X> <Y> ...",
+								fileState);
 						} else
-						{
-							std::cerr << "[\033[1;31mERROR\033[0m]: Invalid number of coordinates specified.\n"
-									  << "Usage: DRAW <X> <Y> <X> <Y> ..." << std::endl;
-							exit(EXIT_FAILURE);
-						}
+							Log(Log::Type::Error,
+								"Invalid number of coordinates specified.\nUsage: DRAW <X> <Y> <X> <Y> ...", fileState);
 					} else
-					{
-						std::cerr << "[\033[1;31mERROR\033[0m]: Invalid X coordinate specified.\n"
-								  << "Usage: DRAW <X> <Y> <X> <Y> ..." << std::endl;
-						exit(EXIT_FAILURE);
-					}
+						Log(Log::Type::Error, "Invalid X coordinate specified.\nUsage: DRAW <X> <Y> <X> <Y> ...",
+							fileState);
 				}
 
 				axiDraw.draw(points);
@@ -538,12 +424,7 @@ void Parser::parse()
 				Token nextToken = fileState.tokens[token.index + 1];
 
 				if (nextToken.type == Token::Type::Number) axiDraw.wait(std::stod(nextToken.value));
-				else
-				{
-					std::cerr << "[\033[1;31mERROR\033[0m]: Invalid wait time specified.\n"
-							  << "Usage: WAIT <MS>" << std::endl;
-					exit(EXIT_FAILURE);
-				}
+				else Log(Log::Type::Error, "Invalid wait time specified.\nUsage: WAIT <MS>", fileState);
 
 				break;
 			}
@@ -551,43 +432,29 @@ void Parser::parse()
 			{
 				checkInteractive("GETPOS");
 				std::pair<double, double> pos = axiDraw.getPosition();
-				std::cout << "X: " << pos.first << " Y: " << pos.second << std::endl;
 
+				Log(Log::Type::Info, "X: " + std::to_string(pos.first) + "Y: " + std::to_string(pos.second));
 				break;
 			}
 			case Token::Type::GetPen:
 			{
 				checkInteractive("GETPEN");
-				std::cout << "Pen is " << (axiDraw.getPen() ? "down" : "up") << "." << std::endl;
 
+				Log(Log::Type::Info, std::string("Pen is ") + (axiDraw.getPen() ? "down" : "up") + ".");
 				break;
 			}
 			case Token::Type::SetPlot:
 			{
-				if (!isModePlot)
-				{
-					std::cerr << "[\033[1;31mERROR\033[0m]: SETPLOT can only be used in plot mode." << std::endl;
-					exit(EXIT_FAILURE);
-				}
+				if (!isModePlot) Log(Log::Type::Error, "SETPLOT can only be used in plot mode.", fileState);
 
 				std::string filePath = fileState.tokens[token.index + 1].value;
-				if (filePath.empty())
-				{
-					std::cerr << "[\033[1;31mERROR\033[0m]: No file path/internet URL specified."
-							  << std::endl;
-					exit(EXIT_FAILURE);
-				}
+				if (filePath.empty()) Log(Log::Type::Error, "No file path/internet URL specified.", fileState);
 
 				if (std::regex_match(filePath, std::regex("https?://.*")))
 					filePath = downloadFile(filePath);
 
 				std::ifstream file(filePath);
-				if (!file)
-				{
-					std::cerr << "[\033[1;31mERROR\033[0m]: Could not open file '" << filePath << "'."
-							  << std::endl;
-					exit(EXIT_FAILURE);
-				}
+				if (!file) Log(Log::Type::Error, "Could not open file \"" + filePath + "\".", fileState);
 				file.close();
 
 				axiDraw.modePlot(filePath);
@@ -600,11 +467,7 @@ void Parser::parse()
 			}
 			case Token::Type::Unknown:
 			{
-				std::cerr << "[\033[1;31mERROR\033[0m]: Unknown token '" << token.item.value << "' on line "
-						  << fileState.lineNums[token.index] << ".\n  " << fileState.lines[token.index] << "\n  "
-						  << std::string(fileState.linePositions[token.index] - token.item.value.length(), ' ')
-						  << "\033[1;31m" << std::string(token.item.value.length(), '^') << "\033[0m" << std::endl;
-				exit(EXIT_FAILURE);
+				Log(Log::Type::Error, "Unknown token: " + token.item.value, fileState);
 			}
 			case Token::Type::PlotMode:
 			case Token::Type::InteractiveMode:
@@ -631,11 +494,7 @@ void Parser::parse()
 			}
 			default:
 			{
-				std::cerr << "[\033[1;31mERROR\033[0m]: Unexpected token '" << token.item.value << "' on line "
-						  << fileState.lineNums[token.index] << ".\n  " << fileState.lines[token.index] << "\n  "
-						  << std::string(fileState.linePositions[token.index] - token.item.value.length(), ' ')
-						  << "\033[1;31m" << std::string(token.item.value.length(), '^') << "\033[0m" << std::endl;
-				exit(EXIT_FAILURE);
+				Log(Log::Type::Error, "Unexpected token: " + token.item.value, fileState);
 			}
 		}
 	}

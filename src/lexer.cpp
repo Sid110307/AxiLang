@@ -52,17 +52,8 @@ std::string Token::typeToCStr()
 
 Lexer::Lexer(const std::string &path)
 {
-	if (!filesys::exists(path))
-	{
-		std::cerr << "[\033[1;31mERROR\033[0m]: File does not exist." << std::endl;
-		exit(EXIT_FAILURE);
-	}
-
-	if (filesys::file_size(path) == 0)
-	{
-		std::cerr << "[\033[1;31mERROR\033[0m]: File is empty." << std::endl;
-		exit(EXIT_FAILURE);
-	}
+	if (!filesys::exists(path)) Log(Log::Type::Fatal, "File does not exist.");
+	if (filesys::file_size(path) == 0) Log(Log::Type::Fatal, "File is empty.");
 
 	file.open(path);
 	lineNum = 0;
@@ -127,10 +118,9 @@ Token Lexer::nextToken()
 			return Token(Token::Type::String, value);
 		}
 
-		std::cerr << "[\033[1;31mERROR\033[0m]: Unknown token '" << value << "' on line " << lineNum << ".\n  "
-				  << line << "\n  " << std::string(linePos - value.length(), ' ') << "\033[1;31m"
-				  << std::string(value.length(), '^') << "\033[0m" << std::endl;
-		exit(EXIT_FAILURE);
+		Log(Log::Type::Error,
+			"Unknown token '" + value + "' on line " + std::to_string(lineNum) + ".\n  " + line + "\n  " +
+			std::string(linePos - value.length(), ' ') + "\033[1;31m" + std::string(value.length(), '^') + "\033[0m");
 	}
 
 	return Token(type, value);

@@ -28,29 +28,33 @@ int main(int argc, char* argv[])
 
 	if (vm.count("help"))
 	{
-		std::cout << "AxiLang (unofficial) - A scripting language for controlling the AxiDraw plotter.\n"
-				  << "Version " << PROJECT_VERSION << "\n" << description << std::endl;
+		std::ostringstream descriptionStream;
+		descriptionStream << description;
+
+		Log(Log::Type::Info,
+			std::string("AxiLang (unofficial) - A scripting language for controlling the AxiDraw plotter.\nVersion ") +
+			PROJECT_VERSION + "\n" + descriptionStream.str());
 		return EXIT_SUCCESS;
 	}
 
 	if (vm.count("version"))
 	{
-		std::cout << "Version " << PROJECT_VERSION << std::endl;
+		Log(Log::Type::Info, std::string("Version ") + PROJECT_VERSION);
 		return EXIT_SUCCESS;
 	}
 
 	for (auto &argument: options.options)
 		if (argument.unregistered)
 		{
-			std::cerr << "[\033[1;31mERROR\033[0m]: Unknown argument '" << argument.string_key << "'.\n"
-					  << "Try '" << argv[0] << " --help' for more information." << std::endl;
+			Log(Log::Type::Error,
+				"Unknown argument '" + argument.string_key + "'.\nTry '" + argv[0] + " --help' for more information.");
 			return EXIT_FAILURE;
 		}
 
 	if (!vm.count("file") || fileName.empty())
 	{
-		std::cerr << "[\033[1;31mERROR\033[0m]: No input file specified.\n"
-				  << "Try '" << argv[0] << " --help' for more information." << std::endl;
+		Log(Log::Type::Error,
+			std::string("No input file specified.\nTry '") + argv[0] + " --help' for more information.");
 		return EXIT_FAILURE;
 	}
 
@@ -59,11 +63,11 @@ int main(int argc, char* argv[])
 
 	if (!inFile)
 	{
-		std::cerr << "[\033[1;31mERROR\033[0m]: Could not open file '" << fileName << "'." << std::endl;
+		Log(Log::Type::Error, "Could not open file \"" + fileName + "\".");
 		return EXIT_FAILURE;
 	}
 
-	std::cout << "[\033[1;30mDEBUG\033[0m]: Parsing file '" << fileName << "'." << std::endl;
+	Log(Log::Type::Debug, std::string("Parsing file '") + fileName + "'.");
 
 	Lexer lexer(fileName);
 	Token token = lexer.nextToken();

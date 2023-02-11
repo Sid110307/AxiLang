@@ -1,4 +1,4 @@
-# AxiLang v0.5.0 (unofficial)
+# AxiLang v0.6.0 (unofficial)
 
 > A scripting language for controlling the [AxiDraw](https://axiDraw.com/) plotter.
 
@@ -156,16 +156,17 @@ The following commands can be used in interactive mode:
 
 - `PENUP` - Raise the pen.
 - `PENDOWN` - Lower the pen.
-- `PENTOGGLE` - Toggle the pen.
+- `PENTOGGLE` - Toggle the pen state.
 - `HOME` - Move the pen to the home position (0, 0).
 - `GOTO <X> <Y>` - Move the pen to the specified position (X, Y).
 - `GOTO_REL <X> <Y>` - Move the pen to the specified position (X, Y) relative to the current position.
-- `DRAW <X> <Y> <X> <Y> ...` - Draw a line from the current position to the specified positions (X, Y).
+- `DRAW <X1> <Y1> <X2> <Y2> ... <Xn> <Yn>` - Draw a path from (X1, Y1) through the coordinates in between to (Xn, Yn).
+  If only 1 pair of coordinates are provided, then the pen will only move to that position.
 - `WAIT <TIME>` - Wait for the specified time (in milliseconds).
-- `GETPOS` - Get the current position of the pen.
-- `GETPEN` - Get the current state of the pen.
+- `GETPOS` - Print the current position of the pen.
+- `GETPEN` - Print the current state of the pen (up or down).
 
-For updating the options, use the `UOPTS` and `END_UOPTS` keywords, with the same options as `OPTS` and `END_OPTS`.
+For updating the options anytime in between, use the `UOPTS` and `END_UOPTS` keywords, with the same options as `OPTS` and `END_OPTS`.
 
 ```matlab
 UOPTS

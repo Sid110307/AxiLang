@@ -1,9 +1,10 @@
 #pragma once
 
+#include <iostream>
+#include "utils.h"
+
 #include <boost/python.hpp>
 #include <boost/filesystem.hpp>
-
-#include <iostream>
 
 namespace py = boost::python;
 namespace filesys = boost::filesystem;
