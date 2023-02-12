@@ -3,6 +3,8 @@
 #include "utils.h"
 
 #include <regex>
+#include <algorithm>
+
 #include <curl/curl.h>
 
 class Parser

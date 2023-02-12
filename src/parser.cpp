@@ -91,6 +91,14 @@ void Parser::parse()
 {
 	assert(Token::Type::EndOfFile == 36);
 
+	auto unknownToken = std::find_if(fileState.tokens.begin(), fileState.tokens.end(), [](Token token)
+	{
+		return token.type == Token::Type::Unknown;
+	});
+
+	if (unknownToken != fileState.tokens.end())
+		Log(Log::Type::Error, "Unknown token \"" + unknownToken->value + "\".", fileState);
+
 	for (auto token: enumerate(fileState.tokens))
 	{
 		switch (token.item.type)
