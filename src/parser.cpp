@@ -45,13 +45,15 @@ static std::string downloadFile(const std::string &url, int redirectLevel = 1)
 	CURL* curl = curl_easy_init();
 	if (!curl) Log(Log::Type::Fatal, "Could not initialize cURL.");
 
+	std::string userAgent = "AxiLang/" + std::string(PROJECT_VERSION);
 	std::string buffer;
+
 	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeCallback);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer);
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 	curl_easy_setopt(curl, CURLOPT_MAXREDIRS, MAX_REDIRECTS);
-	curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
+	curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent.c_str());
 
 	CURLcode res = curl_easy_perform(curl);
 	if (res != CURLE_OK) Log(Log::Type::Fatal, "Could not download file from \"" + cleanText(url) + "\".");
@@ -129,44 +131,47 @@ void Parser::parse()
 				if (!isModeSet)
 					Log(Log::Type::Error, "No mode specified. Please set a mode first.\nUsage: MODE <I|P>", fileState);
 
-				switch (fileState.tokens[token.index + 1].type)
+				Token optionName = fileState.tokens[token.index + 1];
+				Token optionValue = fileState.tokens[token.index + 2];
+
+				switch (optionName.type)
 				{
 					case Token::Type::Acceleration:
-						axiDraw.setAcceleration(std::stoi(fileState.tokens[token.index + 1].value));
+						axiDraw.setAcceleration(std::stoi(optionValue.value));
 						break;
 					case Token::Type::PenUpPosition:
-						axiDraw.setPenUpPosition(std::stoi(fileState.tokens[token.index + 1].value));
+						axiDraw.setPenUpPosition(std::stoi(optionValue.value));
 						break;
 					case Token::Type::PenDownPosition:
-						axiDraw.setPenDownPosition(std::stoi(fileState.tokens[token.index + 1].value));
+						axiDraw.setPenDownPosition(std::stoi(optionValue.value));
 						break;
 					case Token::Type::PenUpDelay:
-						axiDraw.setPenUpDelay(std::stoi(fileState.tokens[token.index + 1].value));
+						axiDraw.setPenUpDelay(std::stoi(optionValue.value));
 						break;
 					case Token::Type::PenDownDelay:
-						axiDraw.setPenDownDelay(std::stoi(fileState.tokens[token.index + 1].value));
+						axiDraw.setPenDownDelay(std::stoi(optionValue.value));
 						break;
 					case Token::Type::PenUpSpeed:
-						axiDraw.setPenUpSpeed(std::stoi(fileState.tokens[token.index + 1].value));
+						axiDraw.setPenUpSpeed(std::stoi(optionValue.value));
 						break;
 					case Token::Type::PenDownSpeed:
-						axiDraw.setPenDownSpeed(std::stoi(fileState.tokens[token.index + 1].value));
+						axiDraw.setPenDownSpeed(std::stoi(optionValue.value));
 						break;
 					case Token::Type::PenUpRate:
-						axiDraw.setPenUpRate(std::stoi(fileState.tokens[token.index + 1].value));
+						axiDraw.setPenUpRate(std::stoi(optionValue.value));
 						break;
 					case Token::Type::PenDownRate:
-						axiDraw.setPenDownRate(std::stoi(fileState.tokens[token.index + 1].value));
+						axiDraw.setPenDownRate(std::stoi(optionValue.value));
 						break;
 					case Token::Type::Model:
-						axiDraw.setModel(std::stoi(fileState.tokens[token.index + 1].value));
+						axiDraw.setModel(std::stoi(optionValue.value));
 						break;
 					case Token::Type::Port:
-						axiDraw.setPort(fileState.tokens[token.index + 1].value);
+						axiDraw.setPort(optionValue.value);
 						break;
 					case Token::Type::Units:
 						if (axiDraw.getMode() == "interactive")
-							axiDraw.setUnits(std::stoi(fileState.tokens[token.index + 1].value));
+							axiDraw.setUnits(std::stoi(optionValue.value));
 						else Log(Log::Type::Error, "UNITS can only be set in interactive mode.", fileState);
 						break;
 					case Token::Type::EndOpts:
@@ -184,11 +189,14 @@ void Parser::parse()
 			{
 				checkInteractive("UOPTS");
 
-				switch (fileState.tokens[token.index + 1].type)
+				Token optionName = fileState.tokens[token.index + 1];
+				Token optionValue = fileState.tokens[token.index + 2];
+
+				switch (optionName.type)
 				{
 					case Token::Type::Acceleration:
 					{
-						Token next = fileState.tokens[token.index + 1];
+						Token next = optionValue;
 						if (next.type == Token::Type::Number) axiDraw.setAcceleration(std::stoi(next.value));
 						else Log(Log::Type::Error, "Invalid acceleration specified.\nUsage: ACCEL <VALUE>", fileState);
 
@@ -196,7 +204,7 @@ void Parser::parse()
 					}
 					case Token::Type::PenUpPosition:
 					{
-						Token next = fileState.tokens[token.index + 1];
+						Token next = optionValue;
 						if (next.type == Token::Type::Number) axiDraw.setPenUpPosition(std::stoi(next.value));
 						else
 							Log(Log::Type::Error, "Invalid raised pen position specified.\nUsage: PENU_POS <VALUE>",
@@ -206,7 +214,7 @@ void Parser::parse()
 					}
 					case Token::Type::PenDownPosition:
 					{
-						Token next = fileState.tokens[token.index + 1];
+						Token next = optionValue;
 						if (next.type == Token::Type::Number) axiDraw.setPenDownPosition(std::stoi(next.value));
 						else
 							Log(Log::Type::Error, "Invalid lowered pen position specified.\nUsage: PEND_POS <VALUE>",
@@ -216,7 +224,7 @@ void Parser::parse()
 					}
 					case Token::Type::PenUpDelay:
 					{
-						Token next = fileState.tokens[token.index + 1];
+						Token next = optionValue;
 						if (next.type == Token::Type::Number) axiDraw.setPenUpDelay(std::stoi(next.value));
 						else
 							Log(Log::Type::Error, "Invalid pen raise delay specified.\nUsage: PENU_DELAY <VALUE>",
@@ -226,7 +234,7 @@ void Parser::parse()
 					}
 					case Token::Type::PenDownDelay:
 					{
-						Token next = fileState.tokens[token.index + 1];
+						Token next = optionValue;
 						if (next.type == Token::Type::Number) axiDraw.setPenDownDelay(std::stoi(next.value));
 						else
 							Log(Log::Type::Error, "Invalid pen lower delay specified.\nUsage: PEND_DELAY <VALUE>",
@@ -236,7 +244,7 @@ void Parser::parse()
 					}
 					case Token::Type::PenUpSpeed:
 					{
-						Token next = fileState.tokens[token.index + 1];
+						Token next = optionValue;
 						if (next.type == Token::Type::Number) axiDraw.setPenUpSpeed(std::stoi(next.value));
 						else
 							Log(Log::Type::Error, "Invalid pen raise speed specified.\nUsage: PENU_SPEED <VALUE>",
@@ -246,7 +254,7 @@ void Parser::parse()
 					}
 					case Token::Type::PenDownSpeed:
 					{
-						Token next = fileState.tokens[token.index + 1];
+						Token next = optionValue;
 						if (next.type == Token::Type::Number) axiDraw.setPenDownSpeed(std::stoi(next.value));
 						else
 							Log(Log::Type::Error, "Invalid pen lower speed specified.\nUsage: PEND_SPEED <VALUE>",
@@ -256,7 +264,7 @@ void Parser::parse()
 					}
 					case Token::Type::PenUpRate:
 					{
-						Token next = fileState.tokens[token.index + 1];
+						Token next = optionValue;
 						if (next.type == Token::Type::Number) axiDraw.setPenUpRate(std::stoi(next.value));
 						else
 							Log(Log::Type::Error, "Invalid pen raise rate specified.\nUsage: PENU_RATE <VALUE>",
@@ -266,7 +274,7 @@ void Parser::parse()
 					}
 					case Token::Type::PenDownRate:
 					{
-						Token next = fileState.tokens[token.index + 1];
+						Token next = optionValue;
 						if (next.type == Token::Type::Number) axiDraw.setPenDownRate(std::stoi(next.value));
 						else
 							Log(Log::Type::Error, "Invalid pen lower rate specified.\nUsage: PEND_RATE <VALUE>",
@@ -276,7 +284,7 @@ void Parser::parse()
 					}
 					case Token::Type::Model:
 					{
-						Token next = fileState.tokens[token.index + 1];
+						Token next = optionValue;
 						if (next.type == Token::Type::Number) axiDraw.setModel(std::stoi(next.value));
 						else Log(Log::Type::Error, "Invalid model specified.\nUsage: MODEL <VALUE>", fileState);
 
@@ -284,7 +292,7 @@ void Parser::parse()
 					}
 					case Token::Type::Port:
 					{
-						Token next = fileState.tokens[token.index + 1];
+						Token next = optionValue;
 						if (next.type == Token::Type::String) axiDraw.setPort(next.value);
 						else Log(Log::Type::Error, "Invalid port specified.\nUsage: PORT \"<VALUE>\"", fileState);
 
@@ -292,7 +300,7 @@ void Parser::parse()
 					}
 					case Token::Type::Units:
 					{
-						Token next = fileState.tokens[token.index + 1];
+						Token next = optionValue;
 						if (next.type == Token::Type::Number) axiDraw.setUnits(std::stoi(next.value));
 						else Log(Log::Type::Error, "Invalid units specified.\nUsage: UNITS <VALUE>", fileState);
 

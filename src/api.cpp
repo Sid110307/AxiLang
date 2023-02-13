@@ -18,11 +18,7 @@ AxiDraw::AxiDraw()
 	}
 	catch (boost::python::error_already_set &e)
 	{
-		PyObject * pType, *pValue, *pTraceback;
-		PyErr_Fetch(&pType, &pValue, &pTraceback);
-
-		std::string error = boost::python::extract<std::string>(pValue);
-		Log(Log::Type::Fatal, "Could not initialize AxiDraw API. Error: " + error);
+		Log(Log::Type::Fatal, "Could not initialize AxiDraw API.");
 	}
 }
 
@@ -119,19 +115,8 @@ void AxiDraw::setUnits(int units)
 
 void AxiDraw::connect()
 {
-	try
-	{
-		axiDraw.attr("connect")();
-		Log(Log::Type::Debug, "Connected to AxiDraw.");
-	}
-	catch (boost::python::error_already_set &)
-	{
-		PyObject * pType, *pValue, *pTraceback;
-		PyErr_Fetch(&pType, &pValue, &pTraceback);
-
-		std::string error = boost::python::extract<std::string>(pValue);
-		Log(Log::Type::Fatal, "Could not connect to AxiDraw. Error: " + error);
-	}
+	if (!axiDraw.attr("connect")()) Log(Log::Type::Fatal, "Could not connect to AxiDraw.");
+	else Log(Log::Type::Debug, "Connected to AxiDraw.");
 }
 
 void AxiDraw::disconnect()
@@ -236,36 +221,23 @@ bool AxiDraw::getPen()
 
 void AxiDraw::modePlot(const std::string &filename)
 {
-	try
-	{
-		axiDraw.attr("plot_setup")(filename);
-		Log(Log::Type::Debug, "Mode is set to plot.");
-	}
-	catch (const boost::python::error_already_set &)
-	{
-		PyObject * pType, *pValue, *pTraceback;
-		PyErr_Fetch(&pType, &pValue, &pTraceback);
+	std::stringstream output;
+	std::streambuf* outputBuffer = std::cout.rdbuf();
+	std::cout.rdbuf(output.rdbuf());
 
-		std::string error = boost::python::extract<std::string>(pValue);
-		Log(Log::Type::Fatal, "Could not connect to AxiDraw. Error: " + error);
-	}
+	if (!axiDraw.attr("plot_setup")(filename)) Log(Log::Type::Fatal, "Could not connect to AxiDraw.");
+	else Log(Log::Type::Debug, "Mode is set to plot.");
+
+	std::cout.rdbuf(outputBuffer);
+	std::string outputString = output.str();
+	if (outputString.find("Failed to connect to AxiDraw.") != std::string::npos)
+		throw boost::python::error_already_set();
 }
 
 void AxiDraw::runPlot()
 {
-	try
-	{
-		axiDraw.attr("plot_run")();
-		Log(Log::Type::Debug, "Running plot.");
-	}
-	catch (const boost::python::error_already_set &)
-	{
-		PyObject * pType, *pValue, *pTraceback;
-		PyErr_Fetch(&pType, &pValue, &pTraceback);
-
-		std::string error = boost::python::extract<std::string>(pValue);
-		Log(Log::Type::Fatal, "Could not run plot. Error: " + error);
-	}
+	if (!axiDraw.attr("plot_run")()) Log(Log::Type::Fatal, "Could not run plot.");
+	else Log(Log::Type::Debug, "Running plot.");
 }
 
 #pragma endregion
