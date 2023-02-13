@@ -1,4 +1,4 @@
-# AxiLang v0.6.0 (unofficial)
+# AxiLang v0.7.0 (unofficial)
 
 > A scripting language for controlling the [AxiDraw](https://axiDraw.com/) plotter.
 
@@ -166,7 +166,8 @@ The following commands can be used in interactive mode:
 - `GETPOS` - Print the current position of the pen.
 - `GETPEN` - Print the current state of the pen (up or down).
 
-For updating the options anytime in between, use the `UOPTS` and `END_UOPTS` keywords, with the same options as `OPTS` and `END_OPTS`.
+For updating the options anytime in between, use the `UOPTS` and `END_UOPTS` keywords, with the same options as `OPTS`
+and `END_OPTS`.
 
 ```matlab
 UOPTS
@@ -179,6 +180,15 @@ Finally, the AxiDraw must be disconnected.
 ```matlab
 DISCONNECT
 ```
+
+## Command Line Options
+
+| Option    | Simplified form | Arguments  | Description                          |
+|-----------|-----------------|------------|--------------------------------------|
+| --help    | -h              |            | Print the help message and exit      |
+| --version | -v              |            | Print the version number and exit    |
+| --debug   | -d              |            | Show extra information while running |
+| --file    | -f              | `filename` | Input file path                      |
 
 ## License
 

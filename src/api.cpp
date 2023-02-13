@@ -13,16 +13,17 @@ AxiDraw::AxiDraw()
 
 	try
 	{
-		axiDraw = py::import("pyaxidraw.axidraw").attr("AxiDraw")();
+		axiDraw = boost::python::import("pyaxidraw.axidraw").attr("AxiDraw")();
+		Log(Log::Type::Debug, "AxiDraw API initialized.");
 	}
-	catch (py::error_already_set &e)
+	catch (boost::python::error_already_set &e)
 	{
-		PyErr_Print();
+		PyObject * pType, *pValue, *pTraceback;
+		PyErr_Fetch(&pType, &pValue, &pTraceback);
 
-		Log(Log::Type::Fatal, "Could not initialize AxiDraw API.");
+		std::string error = boost::python::extract<std::string>(pValue);
+		Log(Log::Type::Fatal, "Could not initialize AxiDraw API. Error: " + error);
 	}
-
-	Log(Log::Type::Debug, "AxiDraw API initialized.");
 }
 
 #pragma region General
@@ -89,14 +90,14 @@ void AxiDraw::setModel(int model)
 
 void AxiDraw::setPort(const std::string &port)
 {
-	axiDraw.attr("options").attr("port") = port != "auto" ? py::str(port) : py::object();
+	axiDraw.attr("options").attr("port") = port != "auto" ? boost::python::str(port) : boost::python::object();
 	Log(Log::Type::Debug, "Set port to " + port + ".");
 }
 
 std::string AxiDraw::getMode()
 {
-	std::string mode = py::extract<std::string>(axiDraw.attr("options").attr("mode"));
-	Log(Log::Type::Debug, "Mode is " + mode + ".");
+	std::string mode = boost::python::extract<std::string>(axiDraw.attr("options").attr("mode"));
+	Log(Log::Type::Debug, "  Mode is " + mode + ".");
 
 	return mode;
 }
@@ -118,8 +119,19 @@ void AxiDraw::setUnits(int units)
 
 void AxiDraw::connect()
 {
-	if (!axiDraw.attr("connect")()) Log(Log::Type::Fatal, "Could not connect to AxiDraw.");
-	else Log(Log::Type::Debug, "Connected to AxiDraw.");
+	try
+	{
+		axiDraw.attr("connect")();
+		Log(Log::Type::Debug, "Connected to AxiDraw.");
+	}
+	catch (boost::python::error_already_set &)
+	{
+		PyObject * pType, *pValue, *pTraceback;
+		PyErr_Fetch(&pType, &pValue, &pTraceback);
+
+		std::string error = boost::python::extract<std::string>(pValue);
+		Log(Log::Type::Fatal, "Could not connect to AxiDraw. Error: " + error);
+	}
 }
 
 void AxiDraw::disconnect()
@@ -202,8 +214,9 @@ void AxiDraw::wait(double ms)
 
 std::pair<double, double> AxiDraw::getPosition()
 {
-	const py::object &pos = axiDraw.attr("current_pos");
-	std::pair<double, double> position = {py::extract<double>(pos[0])(), py::extract<double>(pos[1])()};
+	const boost::python::object &pos = axiDraw.attr("current_pos");
+	std::pair<double, double> position = {boost::python::extract<double>(pos[0])(),
+										  boost::python::extract<double>(pos[1])()};
 
 	Log(Log::Type::Debug,
 		"Current position is (" + std::to_string(position.first) + ", " + std::to_string(position.second) + ").");
@@ -212,7 +225,7 @@ std::pair<double, double> AxiDraw::getPosition()
 
 bool AxiDraw::getPen()
 {
-	bool pen = py::extract<bool>(axiDraw.attr("current_pen")());
+	bool pen = boost::python::extract<bool>(axiDraw.attr("current_pen")());
 
 	Log(Log::Type::Info, std::string("Pen status is ") + (pen ? "down" : "up") + ".");
 	return pen;
@@ -223,14 +236,36 @@ bool AxiDraw::getPen()
 
 void AxiDraw::modePlot(const std::string &filename)
 {
-	axiDraw.attr("plot_setup")(filename);
-	Log(Log::Type::Debug, "Mode is set to plot.");
+	try
+	{
+		axiDraw.attr("plot_setup")(filename);
+		Log(Log::Type::Debug, "Mode is set to plot.");
+	}
+	catch (const boost::python::error_already_set &)
+	{
+		PyObject * pType, *pValue, *pTraceback;
+		PyErr_Fetch(&pType, &pValue, &pTraceback);
+
+		std::string error = boost::python::extract<std::string>(pValue);
+		Log(Log::Type::Fatal, "Could not connect to AxiDraw. Error: " + error);
+	}
 }
 
 void AxiDraw::runPlot()
 {
-	axiDraw.attr("plot_run")();
-	Log(Log::Type::Debug, "Running plot.");
+	try
+	{
+		axiDraw.attr("plot_run")();
+		Log(Log::Type::Debug, "Running plot.");
+	}
+	catch (const boost::python::error_already_set &)
+	{
+		PyObject * pType, *pValue, *pTraceback;
+		PyErr_Fetch(&pType, &pValue, &pTraceback);
+
+		std::string error = boost::python::extract<std::string>(pValue);
+		Log(Log::Type::Fatal, "Could not run plot. Error: " + error);
+	}
 }
 
 #pragma endregion

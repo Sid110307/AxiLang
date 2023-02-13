@@ -21,10 +21,7 @@ add_executable(axilang
         ${PROJECT_SOURCE_DIR}/include/parser.h
         ${PROJECT_SOURCE_DIR}/include/utils.h)
 
-set(PROJECT_VERSION "0.6.0")
-set(MAX_REDIRECTS 5)
-
-target_compile_definitions(axilang PUBLIC PROJECT_VERSION="${PROJECT_VERSION}" MAX_REDIRECTS=${MAX_REDIRECTS})
+target_compile_definitions(axilang PUBLIC PROJECT_VERSION="0.7.0" MAX_REDIRECTS=5)
 
 find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
 if (Python3_FOUND)

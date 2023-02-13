@@ -52,8 +52,8 @@ std::string Token::typeToCStr()
 
 Lexer::Lexer(const std::string &path)
 {
-	if (!filesys::exists(path)) Log(Log::Type::Fatal, "File does not exist.");
-	if (filesys::file_size(path) == 0) Log(Log::Type::Fatal, "File is empty.");
+	if (!boost::filesystem::exists(path)) Log(Log::Type::Fatal, "File does not exist.");
+	if (boost::filesystem::file_size(path) == 0) Log(Log::Type::Fatal, "File is empty.");
 
 	file.open(path);
 	lineNum = 0;

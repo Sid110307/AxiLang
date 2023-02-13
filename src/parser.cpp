@@ -73,7 +73,7 @@ static std::string downloadFile(const std::string &url, int redirectLevel = 1)
 	curl_easy_cleanup(curl);
 	Log(Log::Type::Debug, std::string(redirectLevel * 2, ' ') + "Creating temporary file.");
 
-	filesys::path temp = filesys::temp_directory_path() / filesys::unique_path();
+	boost::filesystem::path temp = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path();
 	std::ofstream file;
 	file.open(temp.string(), std::ios::out | std::ios::binary);
 
@@ -89,7 +89,7 @@ static std::string downloadFile(const std::string &url, int redirectLevel = 1)
 
 void Parser::parse()
 {
-	assert(Token::Type::EndOfFile == 36);
+	assert(Lexer::Token::Type::EndOfFile == 36);
 
 	auto unknownToken = std::find_if(fileState.tokens.begin(), fileState.tokens.end(), [](Token token)
 	{

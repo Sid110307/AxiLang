@@ -1,30 +1,32 @@
+#include <string>
+
 #include <boost/program_options.hpp>
-#include <iostream>
 
 #include "include/lexer.h"
 #include "include/parser.h"
-
-namespace po = boost::program_options;
+#include "include/utils.h"
 
 int main(int argc, char* argv[])
 {
 	std::string fileName;
 
-	po::options_description description("Allowed options");
+	boost::program_options::options_description description("Allowed options");
 	description.add_options()
 			("help,h", "Print this help message and exit")
-			("version,v", "Print version number")
-			("file,f", po::value<std::string>(&fileName), "Input file name");
+			("version,v", "Print the version number and exit")
+			("debug,d", "Show extra information while running")
+			("file,f", boost::program_options::value<std::string>(&fileName), "Input file path");
 
-	po::positional_options_description p;
+	boost::program_options::positional_options_description p;
 	p.add("file", -1);
 
-	po::parsed_options options = po::command_line_parser(argc, argv).options(description).allow_unregistered()
+	boost::program_options::parsed_options options = boost::program_options::command_line_parser(argc, argv).options(
+					description).allow_unregistered()
 			.positional(p).run();
 
-	po::variables_map vm;
-	po::store(options, vm);
-	po::notify(vm);
+	boost::program_options::variables_map vm;
+	boost::program_options::store(options, vm);
+	boost::program_options::notify(vm);
 
 	if (vm.count("help"))
 	{
@@ -51,6 +53,11 @@ int main(int argc, char* argv[])
 			return EXIT_FAILURE;
 		}
 
+	if (vm.count("debug"))
+	{
+		Log(true);
+		Log(Log::Type::Info, "Debug mode enabled.");
+	}
 	if (!vm.count("file") || fileName.empty())
 	{
 		Log(Log::Type::Error,
@@ -82,6 +89,9 @@ int main(int argc, char* argv[])
 
 		token = lexer.nextToken();
 	}
+
+	Log(Log::Type::Debug, "Tokens: ");
+	for (auto &tok: fileState.tokens) Log(Log::Type::Debug, "  " + tok.typeToCStr() + ": " + tok.value);
 
 	Parser parser(fileState);
 	parser.parse();

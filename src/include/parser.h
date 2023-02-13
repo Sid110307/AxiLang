@@ -1,10 +1,13 @@
 #pragma once
 
+#include <fstream>
+#include <string>
+#include <regex>
+
+#include "api.h"
 #include "utils.h"
 
-#include <regex>
-#include <algorithm>
-
+#include <boost/filesystem.hpp>
 #include <curl/curl.h>
 
 class Parser

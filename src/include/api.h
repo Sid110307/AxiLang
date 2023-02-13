@@ -1,13 +1,10 @@
 #pragma once
 
-#include <iostream>
-#include "utils.h"
+#include <string>
 
 #include <boost/python.hpp>
-#include <boost/filesystem.hpp>
 
-namespace py = boost::python;
-namespace filesys = boost::filesystem;
+#include "utils.h"
 
 class AxiDraw
 {
@@ -52,7 +49,7 @@ public:
 	void goTo(double, double);
 	void goToRelative(double, double);
 
-	void draw(std::vector<std::pair<double, double>> path);
+	void draw(std::vector<std::pair<double, double>>);
 	void wait(double);
 
 	std::pair<double, double> getPosition();
@@ -116,5 +113,5 @@ public:
 #pragma endregion
 
 private:
-	py::object axiDraw;
+	boost::python::object axiDraw;
 };
