@@ -59,6 +59,11 @@ Lexer::Lexer(const std::string &path)
 	lineNum = 0;
 }
 
+Lexer::Lexer()
+{
+	lineNum = 0;
+}
+
 Lexer::~Lexer()
 {
 	file.close();
@@ -121,6 +126,69 @@ Token Lexer::nextToken()
 		Log(Log::Type::Error,
 			"Unknown token '" + value + "' on line " + std::to_string(lineNum) + ".\n  " + line + "\n  " +
 			std::string(linePos - value.length(), ' ') + "\033[1;31m" + std::string(value.length(), '^') + "\033[0m");
+	}
+
+	return Token(type, value);
+}
+
+Token Lexer::readInput(const String &input)
+{
+	assert(Token::Type::EndOfFile == 36);
+
+	if (linePos >= (int) line.length())
+	{
+		if (input == "EOL") return Token(Token::Type::EndOfFile, "EOF");
+
+		line = input;
+		lineNum++;
+		linePos = 0;
+	}
+
+	while (linePos < (int) line.length() && isspace(line[linePos])) linePos++;
+
+	if (linePos < (int) line.length() && line[linePos] == '%')
+	{
+		linePos++;
+		if (linePos < (int) line.length() && line[linePos] == '=')
+		{
+			linePos++;
+			while (linePos < (int) line.length() && !(line[linePos] == '=' && line[linePos + 1] == '%'))
+				linePos++;
+
+			linePos += 2;
+		} else
+		{
+			while (linePos < (int) line.length() && line[linePos] != '\r' && line[linePos] != '\n')
+				linePos++;
+		}
+
+		return readInput(input);
+	}
+
+	std::string value;
+	while (linePos < (int) line.length() && !isspace(line[linePos]))
+	{
+		value += line[linePos];
+		linePos++;
+	}
+
+	Token::Type type = getTokenType(value);
+	if (type == Token::Type::Unknown)
+	{
+		if (value.empty()) return readInput(input);
+		if (std::all_of(value.begin(), value.end(), ::isdigit)) return Token(Token::Type::Number, value);
+
+		if (value[0] == '"')
+		{
+			value = value.substr(1, value.length() - 2);
+			return Token(Token::Type::String, value);
+		}
+
+		Log(Log::Type::Error,
+			"Unknown token '" + value + "'.\n  " + line + "\n  " +
+			std::string(linePos - value.length(), ' ') + "\033[1;31m" + std::string(value.length(), '^') +
+			"\033[0m", {}, false);
+		return Token(Token::Type::Unknown, value);
 	}
 
 	return Token(type, value);

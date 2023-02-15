@@ -13,9 +13,11 @@ class Lexer
 {
 public:
 	Lexer(const std::string &);
+	Lexer();
 	~Lexer();
 
 	Token nextToken();
+	Token readInput(const String &);
 
 	int getLineNumber() const;
 	int getLinePosition() const;

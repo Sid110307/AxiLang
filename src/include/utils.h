@@ -165,8 +165,8 @@ public:
 		Info
 	};
 
-	Log(Type type, std::string message, FileState fs = {},
-		std::string callingFunction = std::experimental::source_location::current().function_name())
+	Log(Type type, std::string message, FileState fs = {}, bool shouldExitOnError = true,
+		std::string functionName = std::experimental::source_location::current().function_name())
 	{
 		if (!fs.tokens.empty())
 		{
@@ -190,7 +190,9 @@ public:
 							  << fs.lines[fs.lines.size() - 1] << "\n  " << padding << "\033[1;31m" << carets << "\n  "
 							  << message << "\033[0m" << std::endl;
 				else std::cerr << "[\033[1;31mERROR\033[0m]: " << message << std::endl;
-				exit(EXIT_FAILURE);
+
+				if (shouldExitOnError) exit(EXIT_FAILURE);
+				break;
 			}
 			case Type::Warning:
 			{
@@ -204,8 +206,8 @@ public:
 			case Type::Debug:
 			{
 				if (debug)
-					std::cout << "[\033[1;34mDEBUG\033[0m]: " << message << " (\033[37m" << callingFunction
-							  << "()\033[0m)" << std::endl;
+					std::cout << "[\033[1;34mDEBUG\033[0m]: " << message << " (\033[37m" << functionName << "()\033[0m)"
+							  << std::endl;
 				break;
 			}
 			case Type::Info:
@@ -227,3 +229,91 @@ private:
 };
 
 #pragma endregion
+#pragma region StringUtils
+
+class String : public std::string
+{
+public:
+	enum Case
+	{
+		Upper,
+		Lower,
+		Title
+	};
+
+	String() : std::string() {}
+	String(const std::string &str) : std::string(str) {}
+	String(const char* str) : std::string(str) {}
+	String(const char c) : std::string(1, c) {}
+
+	String &lTrim()
+	{
+		erase(begin(), std::find_if(begin(), end(), [](int ch) { return !std::isspace(ch); }));
+		return *this;
+	}
+
+	String &rTrim()
+	{
+		erase(std::find_if(rbegin(), rend(), [](int ch) { return !std::isspace(ch); }).base(), end());
+		return *this;
+	}
+
+	String &trim()
+	{
+		return lTrim().rTrim();
+	}
+
+	String &sanitize()
+	{
+		erase(std::remove_if(begin(), end(), [](unsigned char c) { return !std::isprint(c) && c != '"' && c != ' '; }),
+			  end());
+		return *this;
+	}
+
+	String unsanitize()
+	{
+		String copy = *this;
+		copy.erase(std::remove_if(copy.begin(), copy.end(),
+								  [](unsigned char c) { return !std::isprint(c) && c != '"' && c != ' '; }),
+				   copy.end());
+		return copy;
+	}
+
+	String &changeCase(Case stringCase)
+	{
+		switch (stringCase)
+		{
+			case Upper:
+			{
+				std::transform(begin(), end(), begin(), [](unsigned char c) { return std::toupper(c); });
+				break;
+			}
+			case Lower:
+			{
+				std::transform(begin(), end(), begin(), [](unsigned char c) { return std::tolower(c); });
+				break;
+			}
+			case Title:
+			{
+				bool isSpace = true;
+				for (auto &c: *this)
+				{
+					if (isSpace)
+					{
+						c = std::toupper(c);
+						isSpace = false;
+					} else c == ' ' ? isSpace = true : c = std::tolower(c);
+				}
+				break;
+			}
+		}
+
+		return *this;
+	}
+
+	String &getCase(Case stringCase)
+	{
+		String copy = *this;
+		return copy.changeCase(stringCase);
+	}
+};

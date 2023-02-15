@@ -4,6 +4,7 @@
 
 #include "include/lexer.h"
 #include "include/parser.h"
+#include "include/interpreter.h"
 #include "include/utils.h"
 
 int main(int argc, char* argv[])
@@ -15,7 +16,8 @@ int main(int argc, char* argv[])
 			("help,h", "Print this help message and exit")
 			("version,v", "Print the version number and exit")
 			("debug,d", "Show extra information while running")
-			("file,f", boost::program_options::value<std::string>(&fileName), "Input file path");
+			("file,f", boost::program_options::value<std::string>(&fileName), "Input file path")
+			("interactive,i", "Start an interactive interpreter");
 
 	boost::program_options::positional_options_description p;
 	p.add("file", -1);
@@ -58,6 +60,15 @@ int main(int argc, char* argv[])
 		Log(true);
 		Log(Log::Type::Info, "Debug mode enabled.");
 	}
+
+	if (vm.count("interactive"))
+	{
+		Log(Log::Type::Info, "Starting AxiLang interpreter.");
+		Interpreter().run();
+
+		return EXIT_SUCCESS;
+	}
+
 	if (!vm.count("file") || fileName.empty())
 	{
 		Log(Log::Type::Error,

@@ -16,12 +16,14 @@ add_executable(axilang
         ${PROJECT_SOURCE_DIR}/api.cpp
         ${PROJECT_SOURCE_DIR}/lexer.cpp
         ${PROJECT_SOURCE_DIR}/parser.cpp
+        ${PROJECT_SOURCE_DIR}/interpreter.cpp
         ${PROJECT_SOURCE_DIR}/include/api.h
         ${PROJECT_SOURCE_DIR}/include/lexer.h
         ${PROJECT_SOURCE_DIR}/include/parser.h
+        ${PROJECT_SOURCE_DIR}/include/interpreter.h
         ${PROJECT_SOURCE_DIR}/include/utils.h)
 
-target_compile_definitions(axilang PUBLIC PROJECT_VERSION="0.7.0" MAX_REDIRECTS=5)
+target_compile_definitions(axilang PUBLIC PROJECT_VERSION="0.8.0" MAX_REDIRECTS=5)
 
 find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
 if (Python3_FOUND)

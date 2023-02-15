@@ -2,7 +2,7 @@
 
 void Parser::checkInteractive(std::string functionName)
 {
-	if (!isModeSet)Log(Log::Type::Error, "No mode specified. Please set a mode first.\nUsage: MODE <I|P>", fileState);
+	if (!isModeSet) Log(Log::Type::Error, "No mode specified. Please set a mode first.\nUsage: MODE <I|P>", fileState);
 	if (axiDraw.getMode() != "interactive")
 		Log(Log::Type::Error, functionName + " can only be used in interactive mode.", fileState);
 
@@ -107,7 +107,14 @@ void Parser::parse()
 		{
 			case Token::Type::Mode:
 			{
+				if (fileState.tokens.size() < token.index + 2)
+					Log(Log::Type::Error, "No mode specified.\nUsage: MODE <I|P>", fileState);
+
 				Token nextToken = fileState.tokens[token.index + 1];
+
+				std::cout << token.index << std::endl;
+				std::cout << token.index + 1 << std::endl;
+				std::cout << token.index + 2 << std::endl;
 
 				switch (nextToken.type)
 				{
@@ -130,6 +137,10 @@ void Parser::parse()
 			{
 				if (!isModeSet)
 					Log(Log::Type::Error, "No mode specified. Please set a mode first.\nUsage: MODE <I|P>", fileState);
+
+				if (fileState.tokens.size() < token.index + 3)
+					Log(Log::Type::Error, "No option specified.\nUsage: OPTS\n\t<option> <value>\n\t...\nEND_OPTS",
+						fileState);
 
 				Token optionName = fileState.tokens[token.index + 1];
 				Token optionValue = fileState.tokens[token.index + 2];
@@ -188,6 +199,10 @@ void Parser::parse()
 			case Token::Type::UOpts:
 			{
 				checkInteractive("UOPTS");
+
+				if (fileState.tokens.size() < token.index + 3)
+					Log(Log::Type::Error, "No option specified.\nUsage: UOPTS\n\t<option> <value>\n\t...\nEND_UOPTS",
+						fileState);
 
 				Token optionName = fileState.tokens[token.index + 1];
 				Token optionValue = fileState.tokens[token.index + 2];
@@ -363,6 +378,12 @@ void Parser::parse()
 			{
 				checkInteractive("GOTO");
 
+				if (fileState.tokens.size() < token.index + 2)
+				{
+					Log(Log::Type::Error, "Invalid coordinates specified.\nUsage: GOTO <X> <Y>", fileState);
+					break;
+				}
+
 				std::pair<double, double> point;
 				Token nextToken = fileState.tokens[token.index + 1];
 
@@ -381,6 +402,12 @@ void Parser::parse()
 			case Token::Type::GoToRelative:
 			{
 				checkInteractive("GOTO_REL");
+
+				if (fileState.tokens.size() < token.index + 2)
+				{
+					Log(Log::Type::Error, "Invalid coordinates specified.\nUsage: GOTO_REL <X> <Y>", fileState);
+					break;
+				}
 
 				std::pair<double, double> point;
 				Token nextToken = fileState.tokens[token.index + 1];
@@ -401,8 +428,15 @@ void Parser::parse()
 			{
 				checkInteractive("DRAW");
 
+				if (fileState.tokens.size() < token.index + 2)
+				{
+					Log(Log::Type::Error, "Invalid coordinates specified.\nUsage: DRAW <X> <Y> <X> <Y> ...", fileState);
+					break;
+				}
+
 				std::vector<std::pair<double, double>> points;
 				size_t index = token.index + 1;
+
 				while (index < fileState.tokens.size())
 				{
 					Token nextToken = fileState.tokens[index];
@@ -437,6 +471,13 @@ void Parser::parse()
 			case Token::Type::Wait:
 			{
 				checkInteractive("WAIT");
+
+				if (fileState.tokens.size() < token.index + 2)
+				{
+					Log(Log::Type::Error, "Invalid wait time specified.\nUsage: WAIT <MS>", fileState);
+					break;
+				}
+
 				Token nextToken = fileState.tokens[token.index + 1];
 
 				if (nextToken.type == Token::Type::Number) axiDraw.wait(std::stod(nextToken.value));
@@ -462,6 +503,11 @@ void Parser::parse()
 			case Token::Type::SetPlot:
 			{
 				if (!isModePlot) Log(Log::Type::Error, "SETPLOT can only be used in plot mode.", fileState);
+				if (fileState.tokens.size() < token.index + 2)
+				{
+					Log(Log::Type::Error, "No file path/internet URL specified.", fileState);
+					break;
+				}
 
 				std::string filePath = fileState.tokens[token.index + 1].value;
 				if (filePath.empty()) Log(Log::Type::Error, "No file path/internet URL specified.", fileState);

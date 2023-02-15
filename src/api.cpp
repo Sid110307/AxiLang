@@ -18,6 +18,7 @@ AxiDraw::AxiDraw()
 	}
 	catch (boost::python::error_already_set &e)
 	{
+		PyErr_Print();
 		Log(Log::Type::Fatal, "Could not initialize AxiDraw API.");
 	}
 }
