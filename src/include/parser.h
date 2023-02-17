@@ -13,7 +13,9 @@
 class Parser
 {
 public:
-	Parser(FileState fileState) : fileState(fileState), axiDraw(), isModeSet(false) {}
+	Parser(FileState fileState, bool shouldExitOnError = true)
+			: fileState(fileState), axiDraw(), isModeSet(false), isModePlot(false),
+			  shouldExitOnError(shouldExitOnError) {}
 	~Parser() = default;
 
 	void parse();
@@ -24,6 +26,8 @@ private:
 
 	bool isModeSet;
 	bool isModePlot;
+	bool shouldExitOnError = true;
+
 	void checkInteractive(std::string);
 };
 

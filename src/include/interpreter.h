@@ -1,9 +1,3 @@
-// Create a command-line interpreter that reads input, lexes, and parses it.
-// Also, add support for multi-line input.
-// There should also be support for history of commands, viewing and clearing history too.
-// The interpreter should also be able to print out help messages.
-// The interpreter should also be able to exit.
-
 #pragma once
 
 #include <iostream>

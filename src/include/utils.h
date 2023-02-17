@@ -76,6 +76,8 @@ struct FileState
 	std::vector<std::string> lines;
 	std::vector<int> lineNums;
 	std::vector<int> linePositions;
+
+	bool isEmpty() const { return tokens.empty() || lines.empty() || lineNums.empty() || linePositions.empty(); }
 };
 
 #pragma endregion
@@ -108,7 +110,7 @@ public:
 			return it != other.it;
 		}
 
-		typename T::iterator::value_type item()
+		[[maybe_unused]] typename T::iterator::value_type item()
 		{
 			return *it;
 		}
@@ -118,7 +120,7 @@ public:
 			return valueType{counter, *it};
 		}
 
-		size_t index()
+		[[maybe_unused]] size_t index()
 		{
 			return counter;
 		}
@@ -151,84 +153,6 @@ EnumerateImplementation<T> enumerate(T &t)
 }
 
 #pragma endregion
-#pragma region Logger
-
-class Log
-{
-public:
-	enum class Type
-	{
-		Fatal,
-		Error,
-		Warning,
-		Debug,
-		Info
-	};
-
-	Log(Type type, std::string message, FileState fs = {}, bool shouldExitOnError = true,
-		std::string functionName = std::experimental::source_location::current().function_name())
-	{
-		if (!fs.tokens.empty())
-		{
-			padding = std::string(
-					fs.linePositions[fs.linePositions.size() - 1] - fs.tokens[fs.tokens.size() - 1].value.length(),
-					' ');
-			carets = std::string(fs.tokens[fs.tokens.size() - 1].value.length(), '^');
-		}
-
-		switch (type)
-		{
-			case Type::Fatal:
-			{
-				std::cerr << "[\033[1;31mFATAL\033[0m]: " << message << std::endl;
-				exit(EXIT_FAILURE);
-			}
-			case Type::Error:
-			{
-				if (!fs.tokens.empty())
-					std::cerr << "[\033[1;31mERROR\033[0m]: On line " << fs.lineNums[fs.lineNums.size() - 1] << ".\n  "
-							  << fs.lines[fs.lines.size() - 1] << "\n  " << padding << "\033[1;31m" << carets << "\n  "
-							  << message << "\033[0m" << std::endl;
-				else std::cerr << "[\033[1;31mERROR\033[0m]: " << message << std::endl;
-
-				if (shouldExitOnError) exit(EXIT_FAILURE);
-				break;
-			}
-			case Type::Warning:
-			{
-				if (!fs.tokens.empty())
-					std::cerr << "[\033[1;33mWARNING\033[0m]: On line " << fs.lineNums[fs.lineNums.size() - 1]
-							  << ".\n  " << fs.lines[fs.lines.size() - 1] << "\n  " << padding << "\033[1;33m" << carets
-							  << "\n  " << message << "\033[0m" << std::endl;
-				else std::cerr << "[\033[1;33mWARNING\033[0m]: " << message << std::endl;
-				break;
-			}
-			case Type::Debug:
-			{
-				if (debug)
-					std::cout << "[\033[1;34mDEBUG\033[0m]: " << message << " (\033[37m" << functionName << "()\033[0m)"
-							  << std::endl;
-				break;
-			}
-			case Type::Info:
-			{
-				std::cout << "[\033[1;36mINFO\033[0m]: " << message << std::endl;
-				break;
-			}
-		}
-	}
-
-	Log(bool debugEnabled)
-	{
-		debug = debugEnabled;
-	}
-
-private:
-	std::string padding, carets;
-	bool debug;
-};
-
-#pragma endregion
 #pragma region StringUtils
 
 class String : public std::string
@@ -242,9 +166,8 @@ public:
 	};
 
 	String() : std::string() {}
-	String(const std::string &str) : std::string(str) {}
-	String(const char* str) : std::string(str) {}
-	String(const char c) : std::string(1, c) {}
+	[[maybe_unused]] String(const std::string &str) : std::string(str) {}
+	[[maybe_unused]] String(const char *str) : std::string(str) {}
 
 	String &lTrim()
 	{
@@ -268,15 +191,6 @@ public:
 		erase(std::remove_if(begin(), end(), [](unsigned char c) { return !std::isprint(c) && c != '"' && c != ' '; }),
 			  end());
 		return *this;
-	}
-
-	String unsanitize()
-	{
-		String copy = *this;
-		copy.erase(std::remove_if(copy.begin(), copy.end(),
-								  [](unsigned char c) { return !std::isprint(c) && c != '"' && c != ' '; }),
-				   copy.end());
-		return copy;
 	}
 
 	String &changeCase(Case stringCase)
@@ -317,3 +231,83 @@ public:
 		return copy.changeCase(stringCase);
 	}
 };
+
+#pragma endregion
+#pragma region Logger
+
+class Log
+{
+public:
+	enum class Type
+	{
+		Fatal,
+		Error,
+		Warning,
+		Debug,
+		Info
+	};
+
+	Log(Type type, String message, FileState fs = {}, bool shouldExitOnError = true,
+		std::string functionName = std::experimental::source_location::current().function_name())
+	{
+		if (!fs.isEmpty())
+		{
+			padding = std::string(
+					fs.linePositions[fs.linePositions.size() - 1] - fs.tokens[fs.tokens.size() - 1].value.length(),
+					' ');
+			carets = std::string(fs.tokens[fs.tokens.size() - 1].value.length(), '^');
+		}
+
+		switch (type)
+		{
+			case Type::Fatal:
+			{
+				std::cerr << "[\033[1;31mFATAL\033[0m]: " << message << std::endl;
+				exit(EXIT_FAILURE);
+			}
+			case Type::Error:
+			{
+				if (!fs.isEmpty())
+					std::cerr << "[\033[1;31mERROR\033[0m]: On line " << fs.lineNums[fs.lineNums.size() - 1] << ".\n  "
+							  << fs.lines[fs.lines.size() - 1] << "\n  " << padding << "\033[1;31m" << carets << "\n  "
+							  << message << "\033[0m" << std::endl;
+				else std::cerr << "[\033[1;31mERROR\033[0m]: " << message << std::endl;
+
+				if (shouldExitOnError) exit(EXIT_FAILURE);
+				break;
+			}
+			case Type::Warning:
+			{
+				if (!fs.isEmpty())
+					std::cerr << "[\033[1;33mWARNING\033[0m]: On line " << fs.lineNums[fs.lineNums.size() - 1]
+							  << ".\n  " << fs.lines[fs.lines.size() - 1] << "\n  " << padding << "\033[1;33m" << carets
+							  << "\n  " << message << "\033[0m" << std::endl;
+				else std::cerr << "[\033[1;33mWARNING\033[0m]: " << message << std::endl;
+				break;
+			}
+			case Type::Debug:
+			{
+				if (debug)
+					std::cout << "[\033[1;34mDEBUG\033[0m]: " << message << " (\033[37m" << functionName << "()\033[0m)"
+							  << std::endl;
+				break;
+			}
+			case Type::Info:
+			{
+				std::cout << "[\033[1;36mINFO\033[0m]: " << message << std::endl;
+				break;
+			}
+		}
+	}
+
+	void enableDebug()
+	{
+		debug = 1;
+	}
+
+private:
+	std::string padding, carets;
+	int debug = 0;
+};
+
+#pragma endregion

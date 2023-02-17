@@ -55,12 +55,7 @@ int main(int argc, char* argv[])
 			return EXIT_FAILURE;
 		}
 
-	if (vm.count("debug"))
-	{
-		Log(true);
-		Log(Log::Type::Info, "Debug mode enabled.");
-	}
-
+	if (vm.count("debug")) Log(Log::Type::Info, "Debug mode enabled.").enableDebug();
 	if (vm.count("interactive"))
 	{
 		Log(Log::Type::Info, "Starting AxiLang interpreter.");

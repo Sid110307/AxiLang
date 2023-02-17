@@ -137,8 +137,6 @@ Token Lexer::readInput(const String &input)
 
 	if (linePos >= (int) line.length())
 	{
-		if (input == "EOL") return Token(Token::Type::EndOfFile, "EOF");
-
 		line = input;
 		lineNum++;
 		linePos = 0;
