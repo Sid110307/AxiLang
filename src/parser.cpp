@@ -1,6 +1,6 @@
 #include "include/parser.h"
 
-void Parser::checkInteractive(std::string functionName)
+void Parser::checkInteractive(const std::string &functionName)
 {
 	if (!isModeSet)
 	{
@@ -17,26 +17,6 @@ void Parser::checkInteractive(std::string functionName)
 
 static std::string downloadFile(const std::string &url, int redirectLevel = 1)
 {
-	auto cleanText = [](std::string text)
-	{
-		std::string cleanedText;
-		for (char c: text)
-		{
-			if (c == '\r') cleanedText += "\\r";
-			else if (c == '\n') cleanedText += "\\n";
-			else if (c == '\t') cleanedText += "\\t";
-			else if (c == '\v') cleanedText += "\\v";
-			else if (c == '\f') cleanedText += "\\f";
-			else if (c == '\a') cleanedText += "\\a";
-			else if (c == '\b') cleanedText += "\\b";
-			else if (c == '\0') cleanedText += "\\0";
-			else if (c == '\033') cleanedText += "\\033";
-			else cleanedText += c;
-		}
-
-		return cleanedText;
-	};
-
 	auto writeCallback = [](char* contents, size_t size, size_t nmemb, std::string* buffer)
 	{
 		size_t realSize = size * nmemb;
@@ -47,7 +27,7 @@ static std::string downloadFile(const std::string &url, int redirectLevel = 1)
 
 	if (redirectLevel > MAX_REDIRECTS) Log(Log::Type::Fatal, "Too many redirects.");
 
-	Log(Log::Type::Debug, std::string(redirectLevel * 2, ' ') + "Downloading file from \"" + cleanText(url) + "\".");
+	Log(Log::Type::Debug, std::string(redirectLevel * 2, ' ') + "Downloading file from \"" + sanitize(url) + "\".");
 	Log(Log::Type::Debug, std::string(redirectLevel * 2, ' ') + "Resolving URL.");
 
 	CURL* curl = curl_easy_init();
@@ -64,7 +44,7 @@ static std::string downloadFile(const std::string &url, int redirectLevel = 1)
 	curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent.c_str());
 
 	CURLcode res = curl_easy_perform(curl);
-	if (res != CURLE_OK) Log(Log::Type::Fatal, "Could not download file from \"" + cleanText(url) + "\".");
+	if (res != CURLE_OK) Log(Log::Type::Fatal, "Could not download file from \"" + sanitize(url) + "\".");
 
 	long responseCode;
 	curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &responseCode);
@@ -74,7 +54,7 @@ static std::string downloadFile(const std::string &url, int redirectLevel = 1)
 		curl_easy_getinfo(curl, CURLINFO_REDIRECT_URL, &redirectUrl);
 
 		Log(Log::Type::Debug,
-			std::string(redirectLevel * 2, ' ') + "Redirecting to \"" + cleanText(redirectUrl) + "\".");
+			std::string(redirectLevel * 2, ' ') + "Redirecting to \"" + sanitize(redirectUrl) + "\".");
 		curl_easy_cleanup(curl);
 
 		return downloadFile(redirectUrl, redirectLevel + 1);
@@ -99,9 +79,9 @@ static std::string downloadFile(const std::string &url, int redirectLevel = 1)
 
 void Parser::parse()
 {
-	assert(Lexer::Token::Type::EndOfFile == 36);
+	assert(Token::Type::EndOfFile == 36);
 
-	auto unknownToken = std::find_if(fileState.tokens.begin(), fileState.tokens.end(), [](Token token)
+	auto unknownToken = std::find_if(fileState.tokens.begin(), fileState.tokens.end(), [](const Token &token)
 	{
 		return token.type == Token::Type::Unknown;
 	});
@@ -112,6 +92,7 @@ void Parser::parse()
 		return;
 	}
 
+	axiDraw.init();
 	for (auto token: enumerate(fileState.tokens))
 	{
 		switch (token.item.type)
@@ -120,7 +101,8 @@ void Parser::parse()
 			{
 				if (fileState.tokens.size() < token.index + 2)
 				{
-					Log(Log::Type::Error, "No mode specified.\nUsage: MODE <I|P>", fileState, shouldExitOnError);
+					Log(Log::Type::Error, "No mode specified.\nUsage: MODE <I|P>", fileState,
+						shouldExitOnError);
 					break;
 				}
 
@@ -261,8 +243,8 @@ void Parser::parse()
 						Token next = optionValue;
 						if (next.type == Token::Type::Number) axiDraw.setModel(std::stoi(next.value));
 						else
-							Log(Log::Type::Error, "Invalid model specified.\nUsage: MODEL <VALUE>", fileState,
-								shouldExitOnError);
+							Log(Log::Type::Error, "Invalid model specified.\nUsage: MODEL <VALUE>",
+								fileState, shouldExitOnError);
 
 						break;
 					}
@@ -271,8 +253,8 @@ void Parser::parse()
 						Token next = optionValue;
 						if (next.type == Token::Type::String) axiDraw.setPort(next.value);
 						else
-							Log(Log::Type::Error, "Invalid port specified.\nUsage: PORT \"<VALUE>\"", fileState,
-								shouldExitOnError);
+							Log(Log::Type::Error, "Invalid port specified.\nUsage: PORT \"<VALUE>\"",
+								fileState, shouldExitOnError);
 
 						break;
 					}
@@ -287,8 +269,8 @@ void Parser::parse()
 						Log(Log::Type::Error, std::string(
 									"Invalid option specified.\nUsage: OPTS <OPTIONS> <VALUE>\nOptions: ACCEL, PENU_POS, "
 									"PEND_POS, PENU_DELAY, PEND_DELAY, PENU_SPEED, PEND_SPEED, PENU_RATE, PEND_RATE, MODEL, "
-									"PORT") + (axiDraw.getMode() == "interactive" ? ", UNITS" : ""), fileState,
-							shouldExitOnError);
+									"PORT") + (axiDraw.getMode() == "interactive" ? ", UNITS" : ""),
+							fileState, shouldExitOnError);
 						break;
 				}
 				break;
@@ -314,8 +296,8 @@ void Parser::parse()
 						Token next = optionValue;
 						if (next.type == Token::Type::Number) axiDraw.setAcceleration(std::stoi(next.value));
 						else
-							Log(Log::Type::Error, "Invalid acceleration specified.\nUsage: ACCEL <VALUE>", fileState,
-								shouldExitOnError);
+							Log(Log::Type::Error, "Invalid acceleration specified.\nUsage: ACCEL <VALUE>",
+								fileState, shouldExitOnError);
 
 						break;
 					}
@@ -404,8 +386,8 @@ void Parser::parse()
 						Token next = optionValue;
 						if (next.type == Token::Type::Number) axiDraw.setModel(std::stoi(next.value));
 						else
-							Log(Log::Type::Error, "Invalid model specified.\nUsage: MODEL <VALUE>", fileState,
-								shouldExitOnError);
+							Log(Log::Type::Error, "Invalid model specified.\nUsage: MODEL <VALUE>",
+								fileState, shouldExitOnError);
 
 						break;
 					}
@@ -414,8 +396,8 @@ void Parser::parse()
 						Token next = optionValue;
 						if (next.type == Token::Type::String) axiDraw.setPort(next.value);
 						else
-							Log(Log::Type::Error, "Invalid port specified.\nUsage: PORT \"<VALUE>\"", fileState,
-								shouldExitOnError);
+							Log(Log::Type::Error, "Invalid port specified.\nUsage: PORT \"<VALUE>\"",
+								fileState, shouldExitOnError);
 
 						break;
 					}
@@ -424,8 +406,8 @@ void Parser::parse()
 						Token next = optionValue;
 						if (next.type == Token::Type::Number) axiDraw.setUnits(std::stoi(next.value));
 						else
-							Log(Log::Type::Error, "Invalid units specified.\nUsage: UNITS <VALUE>", fileState,
-								shouldExitOnError);
+							Log(Log::Type::Error, "Invalid units specified.\nUsage: UNITS <VALUE>",
+								fileState, shouldExitOnError);
 
 						break;
 					}
@@ -434,8 +416,8 @@ void Parser::parse()
 					default:
 						Log(Log::Type::Error, "Invalid option specified.\nUsage: UOPTS <OPTIONS> <VALUE>\n"
 											  "Options: ACCEL, PENU_POS, PEND_POS, PENU_DELAY, PEND_DELAY, PENU_SPEED, "
-											  "PEND_SPEED, PENU_RATE, PEND_RATE, MODEL, PORT, UNITS", fileState,
-							shouldExitOnError);
+											  "PEND_SPEED, PENU_RATE, PEND_RATE, MODEL, PORT, UNITS",
+							fileState, shouldExitOnError);
 						break;
 				}
 
@@ -562,8 +544,8 @@ void Parser::parse()
 
 				if (fileState.tokens.size() < token.index + 2)
 				{
-					Log(Log::Type::Error, "Invalid coordinates specified.\nUsage: DRAW <X> <Y> <X> <Y> ...", fileState,
-						shouldExitOnError);
+					Log(Log::Type::Error, "Invalid coordinates specified.\nUsage: DRAW <X> <Y> <X> <Y> ...",
+						fileState, shouldExitOnError);
 					break;
 				}
 
@@ -586,7 +568,7 @@ void Parser::parse()
 								double y = std::stod(nextToken.value);
 								index++;
 
-								points.push_back(std::make_pair(x, y));
+								points.emplace_back(x, y);
 							} else
 							{
 								Log(Log::Type::Error,
@@ -597,8 +579,8 @@ void Parser::parse()
 						} else
 						{
 							Log(Log::Type::Error,
-								"Invalid number of coordinates specified.\nUsage: DRAW <X> <Y> <X> <Y> ...", fileState,
-								shouldExitOnError);
+								"Invalid number of coordinates specified.\nUsage: DRAW <X> <Y> <X> <Y> ...",
+								fileState, shouldExitOnError);
 							break;
 						}
 					} else

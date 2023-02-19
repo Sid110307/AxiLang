@@ -1,7 +1,10 @@
 #pragma once
 
 #include <iostream>
-#include <experimental/source_location>
+#include <map>
+#include <vector>
+
+#include <boost/assert/source_location.hpp>
 
 #pragma region DataStructures
 
@@ -67,7 +70,7 @@ struct Token
 	std::string value;
 
 	Token(Type type, std::string value) : type(type), value(std::move(value)) {}
-	std::string typeToCStr();
+	[[nodiscard]] std::string typeToCStr() const;
 };
 
 struct FileState
@@ -77,7 +80,10 @@ struct FileState
 	std::vector<int> lineNums;
 	std::vector<int> linePositions;
 
-	bool isEmpty() const { return tokens.empty() || lines.empty() || lineNums.empty() || linePositions.empty(); }
+	[[nodiscard]] bool isEmpty() const
+	{
+		return tokens.empty() || lines.empty() || lineNums.empty() || linePositions.empty();
+	}
 };
 
 #pragma endregion
@@ -98,7 +104,7 @@ public:
 
 	struct Iterator
 	{
-		Iterator(typename T::iterator it, size_t counter = 0) : it(it), counter(counter) {}
+		explicit Iterator(typename T::iterator it, size_t counter = 0) : it(it), counter(counter) {}
 
 		Iterator operator++()
 		{
@@ -110,7 +116,7 @@ public:
 			return it != other.it;
 		}
 
-		[[maybe_unused]] typename T::iterator::value_type item()
+		typename T::iterator::value_type item()
 		{
 			return *it;
 		}
@@ -120,7 +126,7 @@ public:
 			return valueType{counter, *it};
 		}
 
-		[[maybe_unused]] size_t index()
+		size_t index()
 		{
 			return counter;
 		}
@@ -130,7 +136,7 @@ public:
 		size_t counter;
 	};
 
-	EnumerateImplementation(T &t) : container(t) {}
+	explicit EnumerateImplementation(T &t) : container(t) {}
 
 	Iterator begin()
 	{
@@ -155,82 +161,55 @@ EnumerateImplementation<T> enumerate(T &t)
 #pragma endregion
 #pragma region StringUtils
 
-class String : public std::string
+inline std::string sanitize(std::string const &str)
 {
-public:
-	enum Case
-	{
-		Upper,
-		Lower,
-		Title
+	static const std::map<char, std::string> lookupTable = {
+			{'\r',   "\\r"},
+			{'\n',   "\\n"},
+			{'\t',   "\\t"},
+			{'\v',   "\\v"},
+			{'\f',   "\\f"},
+			{'\a',   "\\a"},
+			{'\b',   "\\b"},
+			{'\0',   "\\0"},
+			{'\033', "\\033"},
+			{'\\',   "\\\\"},
+			{'\'',   "\\'"},
 	};
 
-	String() : std::string() {}
-	[[maybe_unused]] String(const std::string &str) : std::string(str) {}
-	[[maybe_unused]] String(const char *str) : std::string(str) {}
+	std::string cleanedText;
+	cleanedText.reserve(str.size());
 
-	String &lTrim()
+	for (char c: str)
 	{
-		erase(begin(), std::find_if(begin(), end(), [](int ch) { return !std::isspace(ch); }));
-		return *this;
+		auto it = lookupTable.find(c);
+
+		if (it != lookupTable.end()) cleanedText += it->second;
+		else if (std::isprint(static_cast<unsigned char>(c))) cleanedText += c;
+		else cleanedText += "\\x" + std::to_string(static_cast<unsigned char>(c));
 	}
 
-	String &rTrim()
+	auto trim = [](std::string const &str)
 	{
-		erase(std::find_if(rbegin(), rend(), [](int ch) { return !std::isspace(ch); }).base(), end());
-		return *this;
-	}
+		std::string result = str;
+		result.erase(std::find_if(result.rbegin(), result.rend(), [](int ch) { return !std::isspace(ch); }).base(),
+					 result.end());
+		result.erase(result.begin(),
+					 std::find_if(result.begin(), result.end(), [](int ch) { return !std::isspace(ch); }));
 
-	String &trim()
-	{
-		return lTrim().rTrim();
-	}
+		return result;
+	};
 
-	String &sanitize()
-	{
-		erase(std::remove_if(begin(), end(), [](unsigned char c) { return !std::isprint(c) && c != '"' && c != ' '; }),
-			  end());
-		return *this;
-	}
+	return trim(cleanedText);
+}
 
-	String &changeCase(Case stringCase)
-	{
-		switch (stringCase)
-		{
-			case Upper:
-			{
-				std::transform(begin(), end(), begin(), [](unsigned char c) { return std::toupper(c); });
-				break;
-			}
-			case Lower:
-			{
-				std::transform(begin(), end(), begin(), [](unsigned char c) { return std::tolower(c); });
-				break;
-			}
-			case Title:
-			{
-				bool isSpace = true;
-				for (auto &c: *this)
-				{
-					if (isSpace)
-					{
-						c = std::toupper(c);
-						isSpace = false;
-					} else c == ' ' ? isSpace = true : c = std::tolower(c);
-				}
-				break;
-			}
-		}
+inline std::string toLower(std::string const &str)
+{
+	std::string result = str;
+	std::transform(result.begin(), result.end(), result.begin(), [](unsigned char c) { return std::tolower(c); });
 
-		return *this;
-	}
-
-	String &getCase(Case stringCase)
-	{
-		String copy = *this;
-		return copy.changeCase(stringCase);
-	}
-};
+	return result;
+}
 
 #pragma endregion
 #pragma region Logger
@@ -247,8 +226,8 @@ public:
 		Info
 	};
 
-	Log(Type type, String message, FileState fs = {}, bool shouldExitOnError = true,
-		std::string functionName = std::experimental::source_location::current().function_name())
+	Log(Type type, const std::string &message, FileState fs = {}, bool shouldExitOnError = true,
+		const std::string &functionName = boost::source_location().function_name())
 	{
 		if (!fs.isEmpty())
 		{

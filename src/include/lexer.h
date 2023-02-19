@@ -2,7 +2,6 @@
 
 #include <fstream>
 #include <string>
-#include <map>
 #include <cassert>
 
 #include <boost/filesystem.hpp>
@@ -12,12 +11,12 @@
 class Lexer
 {
 public:
-	Lexer(const std::string &);
+	explicit Lexer(const std::string &);
 	Lexer();
 	~Lexer();
 
 	Token nextToken();
-	Token readInput(const String &);
+	Token readInput(const std::string &);
 
 	int getLineNumber() const;
 	int getLinePosition() const;
@@ -30,5 +29,5 @@ private:
 	int lineNum;
 	int linePos;
 
-	Token::Type getTokenType(const std::string &);
+	static Token::Type getTokenType(const std::string &);
 };

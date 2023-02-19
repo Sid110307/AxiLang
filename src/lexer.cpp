@@ -1,6 +1,6 @@
 #include "include/lexer.h"
 
-std::string Token::typeToCStr()
+std::string Token::typeToCStr() const
 {
 	assert(Token::Type::EndOfFile == 36);
 
@@ -57,11 +57,15 @@ Lexer::Lexer(const std::string &path)
 
 	file.open(path);
 	lineNum = 0;
+	linePos = 0;
 }
 
 Lexer::Lexer()
 {
 	lineNum = 0;
+	linePos = 0;
+
+	file.close();
 }
 
 Lexer::~Lexer()
@@ -75,8 +79,7 @@ Token Lexer::nextToken()
 
 	if (linePos >= (int) line.length())
 	{
-		if (file.eof())
-			return Token(Token::Type::EndOfFile, "EOF");
+		if (file.eof()) return {Token::Type::EndOfFile, "EOF"};
 
 		std::getline(file, line);
 		lineNum++;
@@ -115,12 +118,12 @@ Token Lexer::nextToken()
 	if (type == Token::Type::Unknown)
 	{
 		if (value.empty()) return nextToken();
-		if (std::all_of(value.begin(), value.end(), ::isdigit)) return Token(Token::Type::Number, value);
+		if (std::all_of(value.begin(), value.end(), ::isdigit)) return {Token::Type::Number, value};
 
 		if (value[0] == '"')
 		{
 			value = value.substr(1, value.length() - 2);
-			return Token(Token::Type::String, value);
+			return {Token::Type::String, value};
 		}
 
 		Log(Log::Type::Error,
@@ -128,10 +131,10 @@ Token Lexer::nextToken()
 			std::string(linePos - value.length(), ' ') + "\033[1;31m" + std::string(value.length(), '^') + "\033[0m");
 	}
 
-	return Token(type, value);
+	return {type, value};
 }
 
-Token Lexer::readInput(const String &input)
+Token Lexer::readInput(const std::string &input)
 {
 	assert(Token::Type::EndOfFile == 36);
 
@@ -140,6 +143,8 @@ Token Lexer::readInput(const String &input)
 		line = input;
 		lineNum++;
 		linePos = 0;
+
+		if (line.empty()) return {Token::Type::EndOfFile, "EOF"};
 	}
 
 	while (linePos < (int) line.length() && isspace(line[linePos])) linePos++;
@@ -174,22 +179,22 @@ Token Lexer::readInput(const String &input)
 	if (type == Token::Type::Unknown)
 	{
 		if (value.empty()) return readInput(input);
-		if (std::all_of(value.begin(), value.end(), ::isdigit)) return Token(Token::Type::Number, value);
+		if (std::all_of(value.begin(), value.end(), ::isdigit)) return {Token::Type::Number, value};
 
 		if (value[0] == '"')
 		{
 			value = value.substr(1, value.length() - 2);
-			return Token(Token::Type::String, value);
+			return {Token::Type::String, value};
 		}
 
 		Log(Log::Type::Error,
 			"Unknown token '" + value + "'.\n  " + line + "\n  " +
 			std::string(linePos - value.length(), ' ') + "\033[1;31m" + std::string(value.length(), '^') +
 			"\033[0m", {}, false);
-		return Token(Token::Type::Unknown, value);
+		return {Token::Type::Unknown, value};
 	}
 
-	return Token(type, value);
+	return {type, value};
 }
 
 int Lexer::getLineNumber() const

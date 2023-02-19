@@ -17,7 +17,6 @@ void Interpreter::run()
 	{
 		std::cout << prompt;
 		std::getline(std::cin, input);
-		input.trim().sanitize();
 
 		if (std::cin.eof())
 		{
@@ -27,15 +26,16 @@ void Interpreter::run()
 			break;
 		}
 
-		if (input.getCase(String::Case::Lower) == "help") printHelp();
-		else if (input.getCase(String::Case::Lower) == "history") printHistory();
-		else if (input.getCase(String::Case::Lower) == "clear") clearHistory();
-		else if (input.getCase(String::Case::Lower) == "exit") break;
+		sanitize(input);
+		if (!input.empty()) history.push_back(input);
+
+		if (toLower(input) == "help") printHelp();
+		else if (toLower(input) == "history") printHistory();
+		else if (toLower(input) == "clear") clearHistory();
+		else if (toLower(input) == "exit") break;
 		else
 		{
 			if (input.empty()) continue;
-
-			history.push_back(input);
 			Token token = lexer.readInput(input);
 
 			if (token.type == Token::Type::EndOfFile || token.type == Token::Type::Unknown) continue;
@@ -49,6 +49,7 @@ void Interpreter::run()
 		}
 
 		input.clear();
+		std::cin.clear();
 	}
 
 	Log(Log::Type::Info, "Exiting interpreter.");

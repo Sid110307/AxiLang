@@ -18,12 +18,12 @@ public:
 	void run();
 
 private:
-	String input;
+	std::string input;
 	std::string prompt = "\033[1;32mAxiLang\033[0m>> ";
 	std::vector<std::string> history;
 	Lexer lexer;
 
-	void printHelp();
+	static void printHelp();
 	void printHistory();
 	void clearHistory();
 };

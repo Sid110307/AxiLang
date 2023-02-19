@@ -3,10 +3,19 @@
 AxiDraw::AxiDraw()
 {
 	Py_Initialize();
+}
 
+void AxiDraw::init()
+{
+	wchar_t* path = Py_GetPath();
+
+	std::wstring pathStr(path);
+	std::string str(pathStr.begin(), pathStr.end());
+
+	Log(Log::Type::Debug, "Using Python " + std::string(Py_GetVersion()) + " (from " + str + ").");
 	if (!PyImport_ImportModule("pyaxidraw"))
 	{
-		Log(Log::Type::Fatal, "The library 'pyaxidraw' is not installed.\nPlease install it with "
+		Log(Log::Type::Fatal, "The library 'pyaxidraw' is not installed. Please install it with "
 							  "'\033]8;;https://cdn.evilmadscientist.com/dl/ad/public/AxiDraw_API.zip"
 							  "\033\\pip install https://cdn.evilmadscientist.com/dl/ad/public/AxiDraw_API.zip\033]8;;\033\\'");
 	}
@@ -232,7 +241,7 @@ void AxiDraw::modePlot(const std::string &filename)
 	std::cout.rdbuf(outputBuffer);
 	std::string outputString = output.str();
 	if (outputString.find("Failed to connect to AxiDraw.") != std::string::npos)
-		throw boost::python::error_already_set();
+		Log(Log::Type::Fatal, "Could not connect to AxiDraw.");
 }
 
 void AxiDraw::runPlot()

@@ -1,6 +1,8 @@
 #pragma once
 
 #include <string>
+#include <locale>
+#include <codecvt>
 
 #include <boost/python.hpp>
 
@@ -11,6 +13,8 @@ class AxiDraw
 public:
 	AxiDraw();
 	~AxiDraw() = default;
+
+	void init();
 
 #pragma region General
 	void setAcceleration(double);

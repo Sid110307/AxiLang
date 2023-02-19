@@ -8,13 +8,14 @@
 #include "utils.h"
 
 #include <boost/filesystem.hpp>
+#include <utility>
 #include <curl/curl.h>
 
 class Parser
 {
 public:
-	Parser(FileState fileState, bool shouldExitOnError = true)
-			: fileState(fileState), axiDraw(), isModeSet(false), isModePlot(false),
+	explicit Parser(FileState fileState, bool shouldExitOnError = true)
+			: fileState(std::move(fileState)), axiDraw(), isModeSet(false), isModePlot(false),
 			  shouldExitOnError(shouldExitOnError) {}
 	~Parser() = default;
 
@@ -28,6 +29,6 @@ private:
 	bool isModePlot;
 	bool shouldExitOnError = true;
 
-	void checkInteractive(std::string);
+	void checkInteractive(const std::string &);
 };
 
