@@ -23,8 +23,6 @@ add_executable(axilang
         ${PROJECT_SOURCE_DIR}/include/interpreter.h
         ${PROJECT_SOURCE_DIR}/include/utils.h)
 
-target_compile_definitions(axilang PUBLIC PROJECT_VERSION="0.9.5" MAX_REDIRECTS=5)
-
 find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
 if (Python3_FOUND)
     target_include_directories(axilang PUBLIC ${Python3_INCLUDE_DIRS})
@@ -43,3 +41,4 @@ if (CURL_FOUND)
     target_link_libraries(axilang PUBLIC ${CURL_LIBRARIES})
 endif ()
 
+target_compile_definitions(axilang PUBLIC PROJECT_VERSION="0.9.5" MAX_REDIRECTS=5 PYTHON_EXECUTABLE="${Python3_EXECUTABLE}")

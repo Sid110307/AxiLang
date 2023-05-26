@@ -14,8 +14,6 @@ public:
 	AxiDraw();
 	~AxiDraw() = default;
 
-	void init();
-
 #pragma region General
 	void setAcceleration(double);
 

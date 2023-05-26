@@ -3,8 +3,7 @@
 #include <iostream>
 #include <map>
 #include <vector>
-
-#include <boost/assert/source_location.hpp>
+#include <experimental/source_location>
 
 #pragma region DataStructures
 
@@ -227,7 +226,7 @@ public:
 	};
 
 	Log(Type type, const std::string &message, FileState fs = {}, bool shouldExitOnError = true,
-		const std::string &functionName = boost::source_location().function_name())
+		const std::string &functionName = std::experimental::source_location::current().function_name())
 	{
 		if (!fs.isEmpty())
 		{
@@ -286,7 +285,7 @@ public:
 
 private:
 	std::string padding, carets;
-	int debug = 0;
+	int debug;
 };
 
 #pragma endregion

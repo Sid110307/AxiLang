@@ -12,6 +12,9 @@ void Interpreter::run()
 		}
 	});
 
+	FileState fileState;
+	Parser parser(fileState, false);
+
 	Log(Log::Type::Info, "Type 'help' for a list of commands.");
 	while (true)
 	{
@@ -36,15 +39,24 @@ void Interpreter::run()
 		else
 		{
 			if (input.empty()) continue;
-			Token token = lexer.readInput(input);
 
-			if (token.type == Token::Type::EndOfFile || token.type == Token::Type::Unknown) continue;
+			for (const auto &token: lexer.lexInput(input))
+			{
+				Log(Log::Type::Debug, "Token: " + token.value + " (" + token.typeToCStr() + ")");
+				if (token.type == Token::Type::EndOfFile || token.type == Token::Type::Unknown) continue;
 
-			FileState fileState;
-			fileState.tokens.push_back(token);
-			fileState.lines.push_back(input);
+				fileState.tokens.push_back(token);
+				fileState.lines.push_back(input);
+			}
 
-			Parser parser(fileState, false);
+			Log(Log::Type::Debug, "State: [Tokens: " + std::to_string(fileState.tokens.size()) +
+								  ", Lines: " + std::to_string(fileState.lines.size()) +
+								  ", Line Numbers: " + std::to_string(fileState.lineNums.size()) +
+								  ", Line Positions: " + std::to_string(fileState.linePositions.size()) + "]");
+
+			for (auto &token: fileState.tokens)
+				Log(Log::Type::Debug, "  " + token.value + ": " + token.typeToCStr());
+
 			parser.parse();
 		}
 
@@ -62,7 +74,6 @@ void Interpreter::printHelp()
 	Log(Log::Type::Info, "  exit: Exit the interpreter.");
 	Log(Log::Type::Info, "  history: Show the command history.");
 	Log(Log::Type::Info, "  clear: Clear the command history.");
-	Log(Log::Type::Info, "  eol: End the current command.");
 	Log(Log::Type::Info, "  help: Show this help message.");
 }
 

@@ -134,67 +134,72 @@ Token Lexer::nextToken()
 	return {type, value};
 }
 
-Token Lexer::readInput(const std::string &input)
+// TODO: Fix this shit
+std::vector<Token> Lexer::lexInput(const std::string &input)
 {
 	assert(Token::Type::EndOfFile == 36);
 
-	if (linePos >= (int) line.length())
+	std::vector<Token> tokens;
+	line = input;
+
+	while (linePos < (int) line.length())
 	{
-		line = input;
-		lineNum++;
-		linePos = 0;
+		while (linePos < (int) line.length() && isspace(line[linePos])) linePos++;
+		if (linePos == (int) line.length()) break;
 
-		if (line.empty()) return {Token::Type::EndOfFile, "EOF"};
-	}
-
-	while (linePos < (int) line.length() && isspace(line[linePos])) linePos++;
-
-	if (linePos < (int) line.length() && line[linePos] == '%')
-	{
-		linePos++;
-		if (linePos < (int) line.length() && line[linePos] == '=')
+		if (line[linePos] == '%')
 		{
 			linePos++;
-			while (linePos < (int) line.length() && !(line[linePos] == '=' && line[linePos + 1] == '%'))
+			if (linePos < (int) line.length() && line[linePos] == '=')
+			{
 				linePos++;
+				while (linePos < (int) line.length() && !(line[linePos] == '=' && line[linePos + 1] == '%')) linePos++;
 
-			linePos += 2;
-		} else
-		{
-			while (linePos < (int) line.length() && line[linePos] != '\r' && line[linePos] != '\n')
-				linePos++;
+				linePos += 2;
+			} else while (linePos < (int) line.length() && line[linePos] != '\r' && line[linePos] != '\n') linePos++;
+
+			continue;
 		}
 
-		return readInput(input);
-	}
-
-	std::string value;
-	while (linePos < (int) line.length() && !isspace(line[linePos]))
-	{
-		value += line[linePos];
-		linePos++;
-	}
-
-	Token::Type type = getTokenType(value);
-	if (type == Token::Type::Unknown)
-	{
-		if (value.empty()) return readInput(input);
-		if (std::all_of(value.begin(), value.end(), ::isdigit)) return {Token::Type::Number, value};
-
-		if (value[0] == '"')
+		std::string value;
+		while (linePos < (int) line.length() && !isspace(line[linePos]))
 		{
-			value = value.substr(1, value.length() - 2);
-			return {Token::Type::String, value};
+			value += line[linePos];
+			linePos++;
 		}
 
-		Log(Log::Type::Error,
-			"Unknown token '" + value + "'.\n  " + line + "\n  " +
-			std::string(linePos - value.length(), ' ') + "\033[1;31m" + std::string(value.length(), '^') +
-			"\033[0m", {}, false);
-		return {Token::Type::Unknown, value};
+		Token::Type type = getTokenType(value);
+		if (type == Token::Type::Unknown)
+		{
+			if (value.empty()) continue;
+
+			if (std::all_of(value.begin(), value.end(), ::isdigit))
+			{
+				tokens.push_back({Token::Type::Number, value});
+				continue;
+			}
+
+			if (value[0] == '"')
+			{
+				value = value.substr(1, value.length() - 2);
+				tokens.push_back({Token::Type::String, value});
+				continue;
+			}
+
+			Log(Log::Type::Error,
+				"Unknown token '" + value + "'.\n  " + line + "\n  " +
+				std::string(linePos - value.length(), ' ') + "\033[1;31m" + std::string(value.length(), '^') +
+				"\033[0m", {}, false);
+
+			tokens.push_back({Token::Type::Unknown, value});
+			continue;
+		}
+
+		tokens.push_back({type, value});
 	}
 
-	return {type, value};
+	tokens.push_back({Token::Type::EndOfFile, "EOF"});
+	return tokens;
 }
 
 int Lexer::getLineNumber() const

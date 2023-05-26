@@ -3,16 +3,11 @@
 AxiDraw::AxiDraw()
 {
 	Py_Initialize();
-}
+	std::string version = boost::python::extract<std::string>(boost::python::import("platform").attr(
+			"python_version")());
 
-void AxiDraw::init()
-{
-	wchar_t* path = Py_GetPath();
+	Log(Log::Type::Debug, "Using Python " + version + " (from " + PYTHON_EXECUTABLE + ").");
 
-	std::wstring pathStr(path);
-	std::string str(pathStr.begin(), pathStr.end());
-
-	Log(Log::Type::Debug, "Using Python " + std::string(Py_GetVersion()) + " (from " + str + ").");
 	if (!PyImport_ImportModule("pyaxidraw"))
 	{
 		Log(Log::Type::Fatal, "The library 'pyaxidraw' is not installed. Please install it with "

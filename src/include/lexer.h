@@ -3,6 +3,7 @@
 #include <fstream>
 #include <string>
 #include <cassert>
+#include <sstream>
 
 #include <boost/filesystem.hpp>
 
@@ -16,7 +17,7 @@ public:
 	~Lexer();
 
 	Token nextToken();
-	Token readInput(const std::string &);
+	std::vector<Token> lexInput(const std::string &);
 
 	int getLineNumber() const;
 	int getLinePosition() const;

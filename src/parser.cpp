@@ -92,7 +92,6 @@ void Parser::parse()
 		return;
 	}
 
-	axiDraw.init();
 	for (auto token: enumerate(fileState.tokens))
 	{
 		switch (token.item.type)
