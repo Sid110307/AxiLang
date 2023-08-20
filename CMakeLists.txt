@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.2)
-project(AxiLang)
+project(AxiLang VERSION 0.9.5 LANGUAGES CXX HOMEPAGE_URL "https://github.com/Sid110307/AxiLang.git")
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_FLAGS "-fvisibility=hidden -Wall -Wextra -Werror -Wno-unknown-pragmas")
@@ -21,7 +21,8 @@ add_executable(axilang
         ${PROJECT_SOURCE_DIR}/include/lexer.h
         ${PROJECT_SOURCE_DIR}/include/parser.h
         ${PROJECT_SOURCE_DIR}/include/interpreter.h
-        ${PROJECT_SOURCE_DIR}/include/utils.h)
+        ${PROJECT_SOURCE_DIR}/include/utils.h
+)
 
 find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
 if (Python3_FOUND)
@@ -41,4 +42,8 @@ if (CURL_FOUND)
     target_link_libraries(axilang PUBLIC ${CURL_LIBRARIES})
 endif ()
 
-target_compile_definitions(axilang PUBLIC PROJECT_VERSION="0.9.5" MAX_REDIRECTS=5 PYTHON_EXECUTABLE="${Python3_EXECUTABLE}")
+target_compile_definitions(axilang PUBLIC
+        PROJECT_VERSION="${PROJECT_VERSION}"
+        MAX_REDIRECTS=5
+        PYTHON_EXECUTABLE="${Python3_EXECUTABLE}"
+)

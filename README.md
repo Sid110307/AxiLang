@@ -183,12 +183,13 @@ DISCONNECT
 
 ## Command Line Options
 
-| Option    | Simplified form | Arguments  | Description                          |
-|-----------|-----------------|------------|--------------------------------------|
-| --help    | -h              |            | Print the help message and exit      |
-| --version | -v              |            | Print the version number and exit    |
-| --debug   | -d              |            | Show extra information while running |
-| --file    | -f              | `filename` | Input file path                      |
+| Option        | Simplified form | Arguments  | Description                       |
+|---------------|-----------------|------------|-----------------------------------|
+| --help        | -h              |            | Print the help message and exit   |
+| --version     | -v              |            | Print the version number and exit |
+| --debug       | -d              |            | Show extra info while running     |
+| --file        | -f              | `filename` | Input file path                   |
+| --interactive | -i              |            | Start an interactive interpreter  |
 
 ## License
 

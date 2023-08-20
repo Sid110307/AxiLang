@@ -12,23 +12,23 @@
 class Lexer
 {
 public:
-	explicit Lexer(const std::string &);
-	Lexer();
-	~Lexer();
+    explicit Lexer(const std::string &);
+    Lexer();
+    ~Lexer();
 
-	Token nextToken();
-	std::vector<Token> lexInput(const std::string &);
+    Token nextToken();
+    std::vector<Token> lexInput(const std::string &);
 
-	int getLineNumber() const;
-	int getLinePosition() const;
-	std::string getLine() const;
+    int getLineNumber() const;
+    int getLinePosition() const;
+    std::string getLine() const;
 
 private:
-	std::ifstream file;
-	std::string line;
+    std::ifstream file;
+    std::string line;
 
-	int lineNum;
-	int linePos;
+    int lineNum;
+    int linePos;
 
-	static Token::Type getTokenType(const std::string &);
+    static Token::Type getTokenType(const std::string &);
 };

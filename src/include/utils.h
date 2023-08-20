@@ -9,205 +9,204 @@
 
 struct Token
 {
-	enum Type
-	{
-		// General commands
-		Mode,
-		Opts,
-		EndOpts,
-		UOpts,
-		EndUOpts,
+    enum Type
+    {
+        // General commands
+        Mode,
+        Opts,
+        EndOpts,
+        UOpts,
+        EndUOpts,
 
-		// Modes
-		PlotMode,
-		InteractiveMode,
+        // Modes
+        PlotMode,
+        InteractiveMode,
 
-		// General options
-		Acceleration,
-		PenUpPosition,
-		PenDownPosition,
-		PenUpDelay,
-		PenDownDelay,
-		PenUpSpeed,
-		PenDownSpeed,
-		PenUpRate,
-		PenDownRate,
-		Model,
-		Port,
+        // General options
+        Acceleration,
+        PenUpPosition,
+        PenDownPosition,
+        PenUpDelay,
+        PenDownDelay,
+        PenUpSpeed,
+        PenDownSpeed,
+        PenUpRate,
+        PenDownRate,
+        Model,
+        Port,
 
-		// Interactive options
-		Units,
+        // Interactive options
+        Units,
 
-		// Interactive commands
-		Connect,
-		Disconnect,
-		PenUp,
-		PenDown,
-		PenToggle,
-		Home,
-		GoTo,
-		GoToRelative,
-		Draw,
-		Wait,
-		GetPos,
-		GetPen,
+        // Interactive commands
+        Connect,
+        Disconnect,
+        PenUp,
+        PenDown,
+        PenToggle,
+        Home,
+        GoTo,
+        GoToRelative,
+        Draw,
+        Wait,
+        GetPos,
+        GetPen,
 
-		// Plot commands
-		SetPlot,
-		Plot,
+        // Plot commands
+        SetPlot,
+        Plot,
 
-		// Data types
-		Number,
-		String,
+        // Data types
+        Number,
+        String,
 
-		// Other
-		Unknown,
-		EndOfFile
-	};
+        // Other
+        Unknown,
+        EndOfFile
+    };
 
-	Type type;
-	std::string value;
+    Type type;
+    std::string value;
 
-	Token(Type type, std::string value) : type(type), value(std::move(value)) {}
-	[[nodiscard]] std::string typeToCStr() const;
+    Token(Type type, std::string value) : type(type), value(std::move(value)) {}
+    [[nodiscard]] std::string typeToCStr() const;
 };
 
 struct FileState
 {
-	std::vector<Token> tokens;
-	std::vector<std::string> lines;
-	std::vector<int> lineNums;
-	std::vector<int> linePositions;
+    std::vector<Token> tokens;
+    std::vector<std::string> lines;
+    std::vector<int> lineNums;
+    std::vector<int> linePositions;
 
-	[[nodiscard]] bool isEmpty() const
-	{
-		return tokens.empty() || lines.empty() || lineNums.empty() || linePositions.empty();
-	}
+    [[nodiscard]] bool isEmpty() const
+    {
+        return tokens.empty() || lines.empty() || lineNums.empty() || linePositions.empty();
+    }
 };
 
 #pragma endregion
-#pragma region Enumerator
+#pragma region Enumerate
 
-// Enumerator implementation courtesy of https://github.com/ignatz/pythonic
+// Source: https://github.com/ignatz/pythonic
 template<typename T>
-class EnumerateImplementation
+class Enumerate
 {
 public:
-	struct Item
-	{
-		size_t index;
-		typename T::value_type &item;
-	};
+    struct Item
+    {
+        size_t index;
+        typename T::value_type &item;
+    };
 
-	typedef Item valueType;
+    typedef Item valueType;
 
-	struct Iterator
-	{
-		explicit Iterator(typename T::iterator it, size_t counter = 0) : it(it), counter(counter) {}
+    struct Iterator
+    {
+        explicit Iterator(typename T::iterator it, size_t counter = 0) : it(it), counter(counter) {}
 
-		Iterator operator++()
-		{
-			return Iterator(++it, ++counter);
-		}
+        Iterator operator++()
+        {
+            return Iterator(++it, ++counter);
+        }
 
-		bool operator!=(Iterator other)
-		{
-			return it != other.it;
-		}
+        bool operator!=(Iterator other)
+        {
+            return it != other.it;
+        }
 
-		typename T::iterator::value_type item()
-		{
-			return *it;
-		}
+        typename T::iterator::value_type item()
+        {
+            return *it;
+        }
 
-		valueType operator*()
-		{
-			return valueType{counter, *it};
-		}
+        valueType operator*()
+        {
+            return valueType{counter, *it};
+        }
 
-		size_t index()
-		{
-			return counter;
-		}
+        size_t index()
+        {
+            return counter;
+        }
 
-	private:
-		typename T::iterator it;
-		size_t counter;
-	};
+    private:
+        typename T::iterator it;
+        size_t counter;
+    };
 
-	explicit EnumerateImplementation(T &t) : container(t) {}
+    explicit Enumerate(T &t) : container(t) {}
 
-	Iterator begin()
-	{
-		return Iterator(container.begin());
-	}
+    Iterator begin()
+    {
+        return Iterator(container.begin());
+    }
 
-	Iterator end()
-	{
-		return Iterator(container.end());
-	}
+    Iterator end()
+    {
+        return Iterator(container.end());
+    }
 
 private:
-	T &container;
+    T &container;
 };
 
 template<typename T>
-EnumerateImplementation<T> enumerate(T &t)
+Enumerate<T> enumerate(T &t)
 {
-	return EnumerateImplementation<T>(t);
+    return Enumerate<T>(t);
 }
 
 #pragma endregion
 #pragma region StringUtils
 
-inline std::string sanitize(std::string const &str)
+inline std::string sanitize(const std::string &str)
 {
-	static const std::map<char, std::string> lookupTable = {
-			{'\r',   "\\r"},
-			{'\n',   "\\n"},
-			{'\t',   "\\t"},
-			{'\v',   "\\v"},
-			{'\f',   "\\f"},
-			{'\a',   "\\a"},
-			{'\b',   "\\b"},
-			{'\0',   "\\0"},
-			{'\033', "\\033"},
-			{'\\',   "\\\\"},
-			{'\'',   "\\'"},
-	};
+    static const std::map<char, std::string> lookupTable = {
+            {'\r',   "\\r"},
+            {'\n',   "\\n"},
+            {'\t',   "\\t"},
+            {'\v',   "\\v"},
+            {'\f',   "\\f"},
+            {'\a',   "\\a"},
+            {'\b',   "\\b"},
+            {'\0',   "\\0"},
+            {'\033', "\\033"},
+            {'\\',   "\\\\"},
+            {'\'',   "\\'"},
+            {'\"',   "\\\""},
+    };
 
-	std::string cleanedText;
-	cleanedText.reserve(str.size());
+    std::string cleanedText;
+    cleanedText.reserve(str.size());
 
-	for (char c: str)
-	{
-		auto it = lookupTable.find(c);
+    for (char c: str)
+    {
+        auto it = lookupTable.find(c);
 
-		if (it != lookupTable.end()) cleanedText += it->second;
-		else if (std::isprint(static_cast<unsigned char>(c))) cleanedText += c;
-		else cleanedText += "\\x" + std::to_string(static_cast<unsigned char>(c));
-	}
+        if (it != lookupTable.end()) cleanedText += it->second;
+        else if (std::isprint(static_cast<unsigned char>(c))) cleanedText += c;
+        else cleanedText += "\\x" + std::to_string(static_cast<unsigned char>(c));
+    }
 
-	auto trim = [](std::string const &str)
-	{
-		std::string result = str;
-		result.erase(std::find_if(result.rbegin(), result.rend(), [](int ch) { return !std::isspace(ch); }).base(),
-					 result.end());
-		result.erase(result.begin(),
-					 std::find_if(result.begin(), result.end(), [](int ch) { return !std::isspace(ch); }));
+    return [](const std::string &str)
+    {
+        auto result = str;
+        result.erase(std::find_if(result.rbegin(), result.rend(), [](int ch) { return !std::isspace(ch); }).base(),
+                     result.end());
+        result.erase(result.begin(),
+                     std::find_if(result.begin(), result.end(), [](int ch) { return !std::isspace(ch); }));
 
-		return result;
-	};
-
-	return trim(cleanedText);
+        return result;
+    }(cleanedText);
 }
 
-inline std::string toLower(std::string const &str)
+inline std::string toLower(const std::string &str)
 {
-	std::string result = str;
-	std::transform(result.begin(), result.end(), result.begin(), [](unsigned char c) { return std::tolower(c); });
+    std::string result = str;
+    std::transform(result.begin(), result.end(), result.begin(), [](unsigned char c) { return std::tolower(c); });
 
-	return result;
+    return result;
 }
 
 #pragma endregion
@@ -216,76 +215,76 @@ inline std::string toLower(std::string const &str)
 class Log
 {
 public:
-	enum class Type
-	{
-		Fatal,
-		Error,
-		Warning,
-		Debug,
-		Info
-	};
+    enum class Type
+    {
+        FATAL,
+        ERROR,
+        WARN,
+        DEBUG,
+        INFO
+    };
 
-	Log(Type type, const std::string &message, FileState fs = {}, bool shouldExitOnError = true,
-		const std::string &functionName = std::experimental::source_location::current().function_name())
-	{
-		if (!fs.isEmpty())
-		{
-			padding = std::string(
-					fs.linePositions[fs.linePositions.size() - 1] - fs.tokens[fs.tokens.size() - 1].value.length(),
-					' ');
-			carets = std::string(fs.tokens[fs.tokens.size() - 1].value.length(), '^');
-		}
+    Log(Type type, const std::string &message, FileState fs = {}, bool shouldExitOnError = true,
+        const std::string &functionName = std::experimental::source_location::current().function_name())
+    {
+        if (!fs.isEmpty())
+        {
+            padding = std::string(
+                    fs.linePositions[fs.linePositions.size() - 1] - fs.tokens[fs.tokens.size() - 1].value.length(),
+                    ' ');
+            carets = std::string(fs.tokens[fs.tokens.size() - 1].value.length(), '^');
+        }
 
-		switch (type)
-		{
-			case Type::Fatal:
-			{
-				std::cerr << "[\033[1;31mFATAL\033[0m]: " << message << std::endl;
-				exit(EXIT_FAILURE);
-			}
-			case Type::Error:
-			{
-				if (!fs.isEmpty())
-					std::cerr << "[\033[1;31mERROR\033[0m]: On line " << fs.lineNums[fs.lineNums.size() - 1] << ".\n  "
-							  << fs.lines[fs.lines.size() - 1] << "\n  " << padding << "\033[1;31m" << carets << "\n  "
-							  << message << "\033[0m" << std::endl;
-				else std::cerr << "[\033[1;31mERROR\033[0m]: " << message << std::endl;
+        switch (type)
+        {
+            case Type::FATAL:
+            {
+                std::cerr << "[\033[1;31mFATAL\033[0m]: " << message << std::endl;
+                exit(EXIT_FAILURE);
+            }
+            case Type::ERROR:
+            {
+                if (!fs.isEmpty())
+                    std::cerr << "[\033[1;31mERROR\033[0m]: On line " << fs.lineNums[fs.lineNums.size() - 1] << ".\n  "
+                              << fs.lines[fs.lines.size() - 1] << "\n  " << padding << "\033[1;31m" << carets << "\n  "
+                              << message << "\033[0m" << std::endl;
+                else std::cerr << "[\033[1;31mERROR\033[0m]: " << message << std::endl;
 
-				if (shouldExitOnError) exit(EXIT_FAILURE);
-				break;
-			}
-			case Type::Warning:
-			{
-				if (!fs.isEmpty())
-					std::cerr << "[\033[1;33mWARNING\033[0m]: On line " << fs.lineNums[fs.lineNums.size() - 1]
-							  << ".\n  " << fs.lines[fs.lines.size() - 1] << "\n  " << padding << "\033[1;33m" << carets
-							  << "\n  " << message << "\033[0m" << std::endl;
-				else std::cerr << "[\033[1;33mWARNING\033[0m]: " << message << std::endl;
-				break;
-			}
-			case Type::Debug:
-			{
-				if (debug)
-					std::cout << "[\033[1;34mDEBUG\033[0m]: " << message << " (\033[37m" << functionName << "()\033[0m)"
-							  << std::endl;
-				break;
-			}
-			case Type::Info:
-			{
-				std::cout << "[\033[1;36mINFO\033[0m]: " << message << std::endl;
-				break;
-			}
-		}
-	}
+                if (shouldExitOnError) exit(EXIT_FAILURE);
+                break;
+            }
+            case Type::WARN:
+            {
+                if (!fs.isEmpty())
+                    std::cerr << "[\033[1;33mWARNING\033[0m]: On line " << fs.lineNums[fs.lineNums.size() - 1]
+                              << ".\n  " << fs.lines[fs.lines.size() - 1] << "\n  " << padding << "\033[1;33m" << carets
+                              << "\n  " << message << "\033[0m" << std::endl;
+                else std::cerr << "[\033[1;33mWARNING\033[0m]: " << message << std::endl;
+                break;
+            }
+            case Type::DEBUG:
+            {
+                if (debug)
+                    std::cout << "[\033[1;34mDEBUG\033[0m]: " << message << " (\033[37m" << functionName << "()\033[0m)"
+                              << std::endl;
+                break;
+            }
+            case Type::INFO:
+            {
+                std::cout << "[\033[1;36mINFO\033[0m]: " << message << std::endl;
+                break;
+            }
+        }
+    }
 
-	void enableDebug()
-	{
-		debug = 1;
-	}
+    void enableDebug()
+    {
+        debug = true;
+    }
 
 private:
-	std::string padding, carets;
-	int debug;
+    std::string padding, carets;
+    bool debug = false;
 };
 
 #pragma endregion
