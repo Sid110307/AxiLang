@@ -1,5 +1,7 @@
 #include "include/interpreter.h"
 
+Interpreter::Interpreter() : parser(fileState, false) {}
+
 void Interpreter::run()
 {
     std::signal(SIGINT, [](int signal)
@@ -12,10 +14,7 @@ void Interpreter::run()
         }
     });
 
-    FileState fileState;
-    Parser parser(fileState, false);
-
-    Log(Log::Type::INFO, "Type 'help' for a list of commands.");
+    Log(Log::Type::INFO, "Type \"help\" for a list of commands.");
     while (true)
     {
         std::cout << prompt;
@@ -23,6 +22,7 @@ void Interpreter::run()
 
         if (std::cin.eof())
         {
+            input.clear();
             std::cin.clear();
             std::cout << std::endl;
 
@@ -32,30 +32,45 @@ void Interpreter::run()
         sanitize(input);
         if (!input.empty()) history.push_back(input);
 
-        if (toLower(input) == "help") printHelp();
-        else if (toLower(input) == "history") printHistory();
-        else if (toLower(input) == "clear") clearHistory();
-        else if (toLower(input) == "exit") break;
+        if (input.rfind("source", 0) == 0)
+        {
+            if (trim(input).length() == 6)
+            {
+                Log(Log::Type::ERROR, "No file specified.", {}, false);
+                continue;
+            }
+            std::string path = input.substr(7);
+
+            if (!(boost::filesystem::exists(path) || boost::filesystem::is_regular_file(path)))
+            {
+                Log(Log::Type::ERROR, "File \"" + path + "\" does not exist/is not a file.", {}, false);
+                continue;
+            }
+
+            std::ifstream file(path);
+            if (!file.is_open())
+            {
+                Log(Log::Type::ERROR, "Failed to open file \"" + path + "\".", {}, false);
+                continue;
+            }
+
+            std::string line;
+            while (std::getline(file, line))
+            {
+                sanitize(line);
+                if (line.empty()) continue;
+                execute(line);
+            }
+
+            file.close();
+        } else if (input == "history") printHistory();
+        else if (input == "clear") clearHistory();
+        else if (input == "help") printHelp();
+        else if (input == "exit") break;
         else
         {
             if (input.empty()) continue;
-
-            for (const auto &token: lexer.lexInput(input))
-            {
-                Log(Log::Type::DEBUG, "Token: " + token.value + " (" + token.typeToCStr() + ")");
-                if (token.type == Token::Type::EndOfFile || token.type == Token::Type::Unknown) continue;
-
-                fileState.tokens.push_back(token);
-                fileState.lines.push_back(input);
-            }
-
-            Log(Log::Type::DEBUG, "State: [Tokens: " + std::to_string(fileState.tokens.size()) +
-                                  ", Lines: " + std::to_string(fileState.lines.size()) +
-                                  ", Line Numbers: " + std::to_string(fileState.lineNums.size()) +
-                                  ", Line Positions: " + std::to_string(fileState.linePositions.size()) + "]");
-
-            for (auto &token: fileState.tokens) Log(Log::Type::DEBUG, "  " + token.value + ": " + token.typeToCStr());
-            parser.parse();
+            execute(input);
         }
 
         input.clear();
@@ -63,16 +78,6 @@ void Interpreter::run()
     }
 
     Log(Log::Type::INFO, "Exiting interpreter.");
-}
-
-void Interpreter::printHelp()
-{
-    Log(Log::Type::INFO, std::string("AxiLang (unofficial) - Version ") + PROJECT_VERSION);
-    Log(Log::Type::INFO, "Available commands:");
-    Log(Log::Type::INFO, "  exit: Exit the interpreter.");
-    Log(Log::Type::INFO, "  history: Show the command history.");
-    Log(Log::Type::INFO, "  clear: Clear the command history.");
-    Log(Log::Type::INFO, "  help: Show this help message.");
 }
 
 void Interpreter::printHistory()
@@ -92,4 +97,38 @@ void Interpreter::clearHistory()
 {
     history.clear();
     Log(Log::Type::INFO, "Cleared command history.");
+}
+
+void Interpreter::printHelp()
+{
+    Log(Log::Type::INFO, std::string("AxiLang (unofficial) - Version ") + PROJECT_VERSION);
+    Log(Log::Type::INFO, "Available commands:");
+    Log(Log::Type::INFO, "  source <path>: Load a source file.");
+    Log(Log::Type::INFO, "  history: Show the command history.");
+    Log(Log::Type::INFO, "  clear: Clear the command history.");
+    Log(Log::Type::INFO, "  help: Show this help message.");
+    Log(Log::Type::INFO, "  exit: Exit the interpreter.");
+}
+
+void Interpreter::execute(const std::string &str)
+{
+    for (auto token: lexer.lexInput(str))
+    {
+        Log(Log::Type::DEBUG, "Token: " + token.value + " (" + token.typeToCStr() + ")");
+        while (token.type != Token::Type::EndOfFile)
+        {
+            fileState.tokens.push_back(token);
+            fileState.lines.push_back(str);
+            fileState.lineNums.push_back(lexer.getLineNumber());
+            fileState.linePositions.push_back(lexer.getLinePosition());
+        }
+    }
+
+    Log(Log::Type::DEBUG, "State: [Tokens: " + std::to_string(fileState.tokens.size()) +
+                          ", Lines: " + std::to_string(fileState.lines.size()) +
+                          ", Line Numbers: " + std::to_string(fileState.lineNums.size()) +
+                          ", Line Positions: " + std::to_string(fileState.linePositions.size()) + "]");
+
+    for (const auto &token: fileState.tokens) Log(Log::Type::DEBUG, "  " + token.value + ": " + token.typeToCStr());
+    parser.parse();
 }

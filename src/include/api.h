@@ -12,7 +12,6 @@ class AxiDraw
 {
 public:
     AxiDraw();
-    ~AxiDraw() = default;
 
 #pragma region General
     void setAcceleration(double);

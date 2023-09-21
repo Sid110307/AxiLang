@@ -10,7 +10,7 @@ AxiDraw::AxiDraw()
 
     if (!PyImport_ImportModule("pyaxidraw"))
     {
-        Log(Log::Type::FATAL, "The library 'pyaxidraw' is not installed. Please install it with "
+        Log(Log::Type::FATAL, "The library \"pyaxidraw\" is not installed. Please install it with "
                               "'\033]8;;https://cdn.evilmadscientist.com/dl/ad/public/AxiDraw_API.zip"
                               "\033\\pip install https://cdn.evilmadscientist.com/dl/ad/public/AxiDraw_API.zip\033]8;;\033\\'");
     }

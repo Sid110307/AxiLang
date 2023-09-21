@@ -160,6 +160,17 @@ Enumerate<T> enumerate(T &t)
 #pragma endregion
 #pragma region StringUtils
 
+inline std::string trim(const std::string &str)
+{
+    auto result = str;
+    result.erase(std::find_if(result.rbegin(), result.rend(), [](int ch) { return !std::isspace(ch); }).base(),
+                 result.end());
+    result.erase(result.begin(),
+                 std::find_if(result.begin(), result.end(), [](int ch) { return !std::isspace(ch); }));
+
+    return result;
+}
+
 inline std::string sanitize(const std::string &str)
 {
     static const std::map<char, std::string> lookupTable = {
@@ -173,7 +184,6 @@ inline std::string sanitize(const std::string &str)
             {'\0',   "\\0"},
             {'\033', "\\033"},
             {'\\',   "\\\\"},
-            {'\'',   "\\'"},
             {'\"',   "\\\""},
     };
 
@@ -189,28 +199,13 @@ inline std::string sanitize(const std::string &str)
         else cleanedText += "\\x" + std::to_string(static_cast<unsigned char>(c));
     }
 
-    return [](const std::string &str)
-    {
-        auto result = str;
-        result.erase(std::find_if(result.rbegin(), result.rend(), [](int ch) { return !std::isspace(ch); }).base(),
-                     result.end());
-        result.erase(result.begin(),
-                     std::find_if(result.begin(), result.end(), [](int ch) { return !std::isspace(ch); }));
-
-        return result;
-    }(cleanedText);
-}
-
-inline std::string toLower(const std::string &str)
-{
-    std::string result = str;
-    std::transform(result.begin(), result.end(), result.begin(), [](unsigned char c) { return std::tolower(c); });
-
-    return result;
+    return trim(cleanedText);
 }
 
 #pragma endregion
 #pragma region Logger
+
+static bool debug = false;
 
 class Log
 {
@@ -284,7 +279,6 @@ public:
 
 private:
     std::string padding, carets;
-    bool debug = false;
 };
 
 #pragma endregion

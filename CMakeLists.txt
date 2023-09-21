@@ -1,8 +1,12 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.20)
 project(AxiLang VERSION 0.9.5 LANGUAGES CXX HOMEPAGE_URL "https://github.com/Sid110307/AxiLang.git")
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_FLAGS "-fvisibility=hidden -Wall -Wextra -Werror -Wno-unknown-pragmas")
+set(CMAKE_CXX_STANDARD 17)
+if (WIN32)
+    set(CMAKE_CXX_FLAGS "/W4 /WX /EHsc")
+else ()
+    set(CMAKE_CXX_FLAGS "-fvisibility=hidden -Wall -Wextra -Wno-unknown-pragmas")
+endif ()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(PROJECT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)

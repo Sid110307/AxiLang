@@ -12,18 +12,20 @@
 class Interpreter
 {
 public:
-    Interpreter() = default;
-    ~Interpreter() = default;
-
+    Interpreter();
     void run();
 
 private:
     std::string input;
     std::string prompt = "\033[1;32mAxiLang\033[0m>> ";
     std::vector<std::string> history;
-    Lexer lexer;
 
-    static void printHelp();
+    Lexer lexer;
+    FileState fileState;
+    Parser parser;
+
     void printHistory();
     void clearHistory();
+    static void printHelp();
+    void execute(const std::string &);
 };

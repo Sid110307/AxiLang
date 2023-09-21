@@ -17,8 +17,6 @@ public:
     explicit Parser(FileState fileState, bool shouldExitOnError = true)
             : fileState(std::move(fileState)), axiDraw(), isModeSet(false), isModePlot(false),
               shouldExitOnError(shouldExitOnError) {}
-    ~Parser() = default;
-
     void parse();
 
 private:

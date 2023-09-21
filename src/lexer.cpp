@@ -127,33 +127,37 @@ Token Lexer::nextToken()
         }
 
         Log(Log::Type::ERROR,
-            "Unknown token '" + value + "' on line " + std::to_string(lineNum) + ".\n  " + line + "\n  " +
+            "Unknown token \"" + value + "\" on line " + std::to_string(lineNum) + ".\n  " + line + "\n  " +
             std::string(linePos - value.length(), ' ') + "\033[1;31m" + std::string(value.length(), '^') + "\033[0m");
     }
 
     return {type, value};
 }
 
+// TODO: Fix all tokens (separated by space) not lexing. Only first one is.
 std::vector<Token> Lexer::lexInput(const std::string &input)
 {
     assert(Token::Type::EndOfFile == 36);
+    lineNum = 0;
+    linePos = 0;
 
     std::vector<Token> tokens;
-    line = input;
+    std::istringstream iss(input);
 
-    while (linePos < (int) line.length())
+    while (std::getline(iss, line))
     {
-        while (linePos < (int) line.length() && isspace(line[linePos])) linePos++;
-        if (linePos == (int) line.length()) break;
+        lineNum++;
+        linePos = 0;
 
-        if (line[linePos] == '%')
+        while (linePos < (int) line.length() && isspace(line[linePos])) linePos++;
+
+        if (linePos < (int) line.length() && line[linePos] == '%')
         {
             linePos++;
             if (linePos < (int) line.length() && line[linePos] == '=')
             {
                 linePos++;
                 while (linePos < (int) line.length() && !(line[linePos] == '=' && line[linePos + 1] == '%')) linePos++;
-
                 linePos += 2;
             } else while (linePos < (int) line.length() && line[linePos] != '\r' && line[linePos] != '\n') linePos++;
 
@@ -171,33 +175,24 @@ std::vector<Token> Lexer::lexInput(const std::string &input)
         if (type == Token::Type::Unknown)
         {
             if (value.empty()) continue;
-
-            if (std::all_of(value.begin(), value.end(), ::isdigit))
-            {
-                tokens.push_back({Token::Type::Number, value});
-                continue;
-            }
+            if (std::all_of(value.begin(), value.end(), ::isdigit)) tokens.emplace_back(Token::Type::Number, value);
 
             if (value[0] == '"')
             {
                 value = value.substr(1, value.length() - 2);
-                tokens.push_back({Token::Type::String, value});
-                continue;
+                tokens.emplace_back(Token::Type::String, value);
             }
 
             Log(Log::Type::ERROR,
-                "Unknown token '" + value + "'.\n  " + line + "\n  " +
+                "Unknown token \"" + value + "\".\n  " + line + "\n  " +
                 std::string(linePos - value.length(), ' ') + "\033[1;31m" + std::string(value.length(), '^') +
                 "\033[0m", {}, false);
-
-            tokens.push_back({Token::Type::Unknown, value});
-            continue;
         }
 
-        tokens.push_back({type, value});
+        tokens.emplace_back(type, value);
     }
 
-    tokens.push_back({Token::Type::EndOfFile, "EOF"});
+    tokens.emplace_back(Token::Type::EndOfFile, "EOF");
     return tokens;
 }
 

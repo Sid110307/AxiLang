@@ -49,11 +49,11 @@ int main(int argc, char **argv)
         return EXIT_SUCCESS;
     }
 
-    for (auto &argument: options.options)
+    for (const auto &argument: options.options)
         if (argument.unregistered)
         {
             Log(Log::Type::ERROR,
-                "Unknown argument '" + argument.string_key + "'.\nTry '" + argv[0] + " --help' for more information.");
+                "Unknown argument \"" + argument.string_key + "\".\nTry \"" + argv[0] + " --help\" for more information.");
             return EXIT_FAILURE;
         }
 
@@ -69,7 +69,7 @@ int main(int argc, char **argv)
     if (!vm.count("file") || fileName.empty())
     {
         Log(Log::Type::ERROR,
-            std::string("No input file specified.\nTry '") + argv[0] + " --help' for more information.");
+            std::string("No input file specified.\nTry \"") + argv[0] + " --help\" for more information.");
         return EXIT_FAILURE;
     }
 
@@ -82,7 +82,7 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
-    Log(Log::Type::DEBUG, std::string("Parsing file '") + fileName + "'.");
+    Log(Log::Type::DEBUG, std::string("Parsing file \"") + fileName + "\".");
 
     Lexer lexer(fileName);
     Token token = lexer.nextToken();
@@ -99,7 +99,7 @@ int main(int argc, char **argv)
     }
 
     Log(Log::Type::DEBUG, "Tokens: ");
-    for (auto &tok: fileState.tokens) Log(Log::Type::DEBUG, "  " + tok.typeToCStr() + ": " + tok.value);
+    for (const auto &tok: fileState.tokens) Log(Log::Type::DEBUG, "  " + tok.typeToCStr() + ": " + tok.value);
 
     Parser parser(fileState);
     parser.parse();
