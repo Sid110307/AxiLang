@@ -9,15 +9,15 @@
 #include "parser.h"
 #include "utils.h"
 
+constexpr std::string_view PROMPT = "\033[1;32mAxiLang\033[0m>> ";
+
 class Interpreter
 {
 public:
     Interpreter();
     void run();
-
 private:
     std::string input;
-    std::string prompt = "\033[1;32mAxiLang\033[0m>> ";
     std::vector<std::string> history;
 
     Lexer lexer;

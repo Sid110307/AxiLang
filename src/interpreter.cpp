@@ -8,16 +8,16 @@ void Interpreter::run()
     {
         if (signal == SIGINT)
         {
+            std::cin.clear();
             std::cout << std::endl;
-            Log(Log::Type::INFO, "Exiting interpreter.");
-            exit(EXIT_SUCCESS);
+            std::cout << PROMPT;
         }
     });
 
     Log(Log::Type::INFO, "Type \"help\" for a list of commands.");
     while (true)
     {
-        std::cout << prompt;
+        std::cout << PROMPT;
         std::getline(std::cin, input);
 
         if (std::cin.eof())
@@ -112,7 +112,7 @@ void Interpreter::printHelp()
 
 void Interpreter::execute(const std::string &str)
 {
-    for (auto token: lexer.lexInput(str))
+    for (const auto &token: lexer.lexInput(str))
     {
         Log(Log::Type::DEBUG, "Token: " + token.value + " (" + token.typeToCStr() + ")");
         while (token.type != Token::Type::EndOfFile)

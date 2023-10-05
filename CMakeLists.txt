@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.20)
-project(AxiLang VERSION 0.9.5 LANGUAGES CXX HOMEPAGE_URL "https://github.com/Sid110307/AxiLang.git")
+project(AxiLang
+        VERSION 0.9.5
+        LANGUAGES CXX
+        HOMEPAGE_URL "https://github.com/Sid110307/AxiLang.git"
+)
 
 set(CMAKE_CXX_STANDARD 17)
 if (WIN32)

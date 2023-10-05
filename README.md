@@ -15,6 +15,7 @@
 
 - An [AxiDraw](https://shop.evilmadscientist.com/productsmenu/890) plotter
 - [CMake 3.20+](https://cmake.org/download/)
+- A C++ compiler that supports C++17 ([GCC](https://gcc.gnu.org/), [Clang](https://clang.llvm.org/), etc.)
 - [Python 3.7+](https://www.python.org/downloads/)
 - [pyaxidraw](https://axiDraw.com/doc/py_api/#installation) (Just
   run `pip install https://cdn.evilmadscientist.com/dl/ad/public/AxiDraw_API.zip`)

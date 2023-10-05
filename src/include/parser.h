@@ -23,10 +23,7 @@ private:
     FileState fileState;
     AxiDraw axiDraw;
 
-    bool isModeSet;
-    bool isModePlot;
-    bool shouldExitOnError = true;
-
+    bool isModeSet, isModePlot, shouldExitOnError = true;
     void checkInteractive(const std::string &);
 };
 

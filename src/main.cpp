@@ -53,7 +53,8 @@ int main(int argc, char **argv)
         if (argument.unregistered)
         {
             Log(Log::Type::ERROR,
-                "Unknown argument \"" + argument.string_key + "\".\nTry \"" + argv[0] + " --help\" for more information.");
+                "Unknown argument \"" + argument.string_key + "\".\nTry \"" + argv[0] +
+                " --help\" for more information.");
             return EXIT_FAILURE;
         }
 
