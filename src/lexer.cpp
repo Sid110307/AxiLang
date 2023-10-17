@@ -73,13 +73,13 @@ Lexer::~Lexer()
     file.close();
 }
 
-Token Lexer::nextToken()
+Token Lexer::nextToken(bool isSingleLine)
 {
     assert(Token::Type::EndOfFile == 36);
 
     if (linePos >= (int) line.length())
     {
-        if (file.eof()) return {Token::Type::EndOfFile, "EOF"};
+        if (file.eof() || isSingleLine) return {Token::Type::EndOfFile, "EOF"};
 
         std::getline(file, line);
         lineNum++;
@@ -98,13 +98,9 @@ Token Lexer::nextToken()
                 linePos++;
 
             linePos += 2;
-        } else
-        {
-            while (linePos < (int) line.length() && line[linePos] != '\r' && line[linePos] != '\n')
-                linePos++;
-        }
+        } else while (linePos < (int) line.length() && line[linePos] != '\n') linePos++;
 
-        return nextToken();
+        return nextToken(isSingleLine);
     }
 
     std::string value;
@@ -117,7 +113,7 @@ Token Lexer::nextToken()
     Token::Type type = getTokenType(value);
     if (type == Token::Type::Unknown)
     {
-        if (value.empty()) return nextToken();
+        if (value.empty()) return nextToken(isSingleLine);
         if (std::all_of(value.begin(), value.end(), ::isdigit)) return {Token::Type::Number, value};
 
         if (value[0] == '"')
@@ -134,65 +130,23 @@ Token Lexer::nextToken()
     return {type, value};
 }
 
-// TODO: Fix all tokens (separated by space) not lexing. Only first one is.
 std::vector<Token> Lexer::lexInput(const std::string &input)
 {
     assert(Token::Type::EndOfFile == 36);
+
     lineNum = 0;
     linePos = 0;
+    line = input;
 
     std::vector<Token> tokens;
-    std::istringstream iss(input);
+    Token token = nextToken(true);
 
-    while (std::getline(iss, line))
+    while (token.type != Token::Type::EndOfFile)
     {
-        lineNum++;
-        linePos = 0;
-
-        while (linePos < (int) line.length() && isspace(line[linePos])) linePos++;
-
-        if (linePos < (int) line.length() && line[linePos] == '%')
-        {
-            linePos++;
-            if (linePos < (int) line.length() && line[linePos] == '=')
-            {
-                linePos++;
-                while (linePos < (int) line.length() && !(line[linePos] == '=' && line[linePos + 1] == '%')) linePos++;
-                linePos += 2;
-            } else while (linePos < (int) line.length() && line[linePos] != '\r' && line[linePos] != '\n') linePos++;
-
-            continue;
-        }
-
-        std::string value;
-        while (linePos < (int) line.length() && !isspace(line[linePos]))
-        {
-            value += line[linePos];
-            linePos++;
-        }
-
-        Token::Type type = getTokenType(value);
-        if (type == Token::Type::Unknown)
-        {
-            if (value.empty()) continue;
-            if (std::all_of(value.begin(), value.end(), ::isdigit)) tokens.emplace_back(Token::Type::Number, value);
-
-            if (value[0] == '"')
-            {
-                value = value.substr(1, value.length() - 2);
-                tokens.emplace_back(Token::Type::String, value);
-            }
-
-            Log(Log::Type::ERROR,
-                "Unknown token \"" + value + "\".\n  " + line + "\n  " +
-                std::string(linePos - value.length(), ' ') + "\033[1;31m" + std::string(value.length(), '^') +
-                "\033[0m", {}, false);
-        }
-
-        tokens.emplace_back(type, value);
+        tokens.push_back(token);
+        token = nextToken(true);
     }
 
-    tokens.emplace_back(Token::Type::EndOfFile, "EOF");
     return tokens;
 }
 

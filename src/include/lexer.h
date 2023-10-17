@@ -16,7 +16,7 @@ public:
     Lexer();
     ~Lexer();
 
-    Token nextToken();
+    Token nextToken(bool = false);
     std::vector<Token> lexInput(const std::string &);
 
     int getLineNumber() const;

@@ -4,21 +4,19 @@ Interpreter::Interpreter() : parser(fileState, false) {}
 
 void Interpreter::run()
 {
-    std::signal(SIGINT, [](int signal)
+    std::signal(SIGINT, [](int)
     {
-        if (signal == SIGINT)
-        {
-            std::cin.clear();
-            std::cout << std::endl;
-            std::cout << PROMPT;
-        }
+        std::cout << std::endl;
+        std::cout << PROMPT;
+        std::cin.clear();
     });
 
     Log(Log::Type::INFO, "Type \"help\" for a list of commands.");
-    while (true)
+    std::cout << PROMPT;
+
+    while (std::getline(std::cin, input))
     {
         std::cout << PROMPT;
-        std::getline(std::cin, input);
 
         if (std::cin.eof())
         {
@@ -59,6 +57,7 @@ void Interpreter::run()
             {
                 sanitize(line);
                 if (line.empty()) continue;
+                Log(Log::Type::DEBUG, "Executing \"" + line + "\".");
                 execute(line);
             }
 
