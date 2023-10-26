@@ -3,7 +3,14 @@
 #include <iostream>
 #include <map>
 #include <vector>
-#include <experimental/source_location>
+
+#if __has_include(<experimental/source_location>)
+#    include <experimental/source_location>
+#elif __has_include(<source_location>)
+#    include <source_location>
+#else
+#    error "Missing <experimental/source_location> or <source_location>"
+#endif
 
 #pragma region DataStructures
 
@@ -220,7 +227,14 @@ public:
     };
 
     Log(Type type, const std::string &message, FileState fs = {}, bool shouldExitOnError = true,
-        const std::string &functionName = std::experimental::source_location::current().function_name())
+#if __has_include(<experimental/source_location>)
+        const std::string &functionName = std::experimental::source_location::current().function_name()
+#elif __has_include(<source_location>)
+	const std::string &functionName = std::source_location::current().function_name()
+#else
+#       error "Missing <experimental/source_location> or <source_location>"
+#endif
+       )
     {
         if (!fs.isEmpty())
         {
