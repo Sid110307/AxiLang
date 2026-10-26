@@ -1,9 +1,19 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-if [ -z "$(which cmake)" ]; then
-    echo "\033[31m[\033[1;31mERROR\033[31m]: It doesn't look like you have cmake installed. Please install it and try again.\033[0m"
+project_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+
+if ! command -v cmake >/dev/null 2>&1; then
+    printf 'ERROR: CMake is required. Run ./install-deps.sh first.\n' >&2
     exit 1
 fi
 
-cmake -S . -B bin && cmake --build bin --target all -j4 && ./bin/axilang "$@"
+cmake_args=()
+if [[ -x "$project_dir/.venv/bin/python" ]]; then
+    cmake_args+=("-DPython3_EXECUTABLE=$project_dir/.venv/bin/python")
+fi
+
+cmake -S "$project_dir" -B "$project_dir/bin" "${cmake_args[@]}"
+cmake --build "$project_dir/bin" --target all --parallel "${BUILD_JOBS:-4}"
+exec "$project_dir/bin/axilang" "$@"
 

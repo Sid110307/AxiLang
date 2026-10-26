@@ -6,6 +6,7 @@ project(AxiLang
 )
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 if (WIN32)
     set(CMAKE_CXX_FLAGS "/W4 /WX /EHsc")
 else ()
@@ -32,22 +33,21 @@ add_executable(axilang
         ${PROJECT_SOURCE_DIR}/include/utils.h
 )
 
-find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
+find_package(Python3 3.8 REQUIRED COMPONENTS Interpreter Development)
 if (Python3_FOUND)
     target_include_directories(axilang PUBLIC ${Python3_INCLUDE_DIRS})
     target_link_libraries(axilang PUBLIC Python3::Python Python3::Module)
 endif ()
 
-find_package(Boost REQUIRED COMPONENTS python program_options filesystem system)
+set(Boost_PYTHON_VERSION "${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}")
+find_package(Boost 1.70 CONFIG REQUIRED COMPONENTS python program_options filesystem)
 if (Boost_FOUND)
-    target_include_directories(axilang PUBLIC ${Boost_INCLUDE_DIRS})
-    target_link_libraries(axilang PUBLIC ${Boost_LIBRARIES})
+    target_link_libraries(axilang PUBLIC Boost::python Boost::program_options Boost::filesystem)
 endif ()
 
 find_package(CURL REQUIRED)
 if (CURL_FOUND)
-    target_include_directories(axilang PUBLIC ${CURL_INCLUDE_DIRS})
-    target_link_libraries(axilang PUBLIC ${CURL_LIBRARIES})
+    target_link_libraries(axilang PUBLIC CURL::libcurl)
 endif ()
 
 target_compile_definitions(axilang PUBLIC

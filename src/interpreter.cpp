@@ -111,10 +111,11 @@ void Interpreter::printHelp()
 
 void Interpreter::execute(const std::string &str)
 {
+    fileState = {};
     for (const auto &token: lexer.lexInput(str))
     {
         Log(Log::Type::DEBUG, "Token: " + token.value + " (" + token.typeToCStr() + ")");
-        while (token.type != Token::Type::EndOfFile)
+        if (token.type != Token::Type::EndOfFile)
         {
             fileState.tokens.push_back(token);
             fileState.lines.push_back(str);
@@ -129,5 +130,6 @@ void Interpreter::execute(const std::string &str)
                           ", Line Positions: " + std::to_string(fileState.linePositions.size()) + "]");
 
     for (const auto &token: fileState.tokens) Log(Log::Type::DEBUG, "  " + token.value + ": " + token.typeToCStr());
+    parser.setFileState(fileState);
     parser.parse();
 }

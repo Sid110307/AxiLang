@@ -12,3 +12,5 @@ bin/*
 
 # Misc
 .dccache
+.venv/
+__pycache__/

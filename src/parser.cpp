@@ -17,12 +17,18 @@ void Parser::checkInteractive(const std::string &functionName)
 
 static std::string downloadFile(const std::string &url, int redirectLevel = 1)
 {
-    auto writeCallback = [](char *contents, size_t size, size_t nmemb, std::string *buffer)
+    curl_write_callback writeCallback = [](char *contents, size_t size, size_t nmemb, void *userdata) noexcept -> size_t
     {
         size_t realSize = size * nmemb;
-        buffer->append(contents, realSize);
-
-        return realSize;
+        try
+        {
+            static_cast<std::string *>(userdata)->append(contents, realSize);
+            return realSize;
+        }
+        catch (...)
+        {
+            return 0;
+        }
     };
 
     if (redirectLevel > MAX_REDIRECTS) Log(Log::Type::FATAL, "Too many redirects.");

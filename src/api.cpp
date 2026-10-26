@@ -2,7 +2,12 @@
 
 AxiDraw::AxiDraw()
 {
-    Py_Initialize();
+    PyConfig config;
+    PyConfig_InitPythonConfig(&config);
+    PyStatus status = PyConfig_SetBytesString(&config, &config.program_name, PYTHON_EXECUTABLE);
+    if (!PyStatus_Exception(status)) status = Py_InitializeFromConfig(&config);
+    PyConfig_Clear(&config);
+    if (PyStatus_Exception(status)) Py_ExitStatusException(status);
     std::string version = boost::python::extract<std::string>(boost::python::import("platform").attr(
             "python_version")());
 
@@ -226,23 +231,33 @@ bool AxiDraw::getPen()
 
 void AxiDraw::modePlot(const std::string &filename)
 {
-    std::stringstream output;
-    std::streambuf *outputBuffer = std::cout.rdbuf();
-    std::cout.rdbuf(output.rdbuf());
-
-    if (!axiDraw.attr("plot_setup")(filename)) Log(Log::Type::FATAL, "Could not connect to AxiDraw.");
-    else Log(Log::Type::DEBUG, "Mode is set to plot.");
-
-    std::cout.rdbuf(outputBuffer);
-    std::string outputString = output.str();
-    if (outputString.find("Failed to connect to AxiDraw.") != std::string::npos)
-        Log(Log::Type::FATAL, "Could not connect to AxiDraw.");
+    try
+    {
+        axiDraw.attr("plot_setup")(filename);
+        Log(Log::Type::DEBUG, "Mode is set to plot.");
+    }
+    catch (boost::python::error_already_set &)
+    {
+        PyErr_Print();
+        Log(Log::Type::FATAL, "Could not load SVG for plot.");
+    }
 }
 
 void AxiDraw::runPlot()
 {
-    if (!axiDraw.attr("plot_run")()) Log(Log::Type::FATAL, "Could not run plot.");
-    else Log(Log::Type::DEBUG, "Running plot.");
+    try
+    {
+        axiDraw.attr("plot_run")();
+        int errorCode = boost::python::extract<int>(axiDraw.attr("errors").attr("code"));
+        if (errorCode != 0) Log(Log::Type::FATAL, "Could not complete plot (API error " +
+                                               std::to_string(errorCode) + ").");
+        Log(Log::Type::DEBUG, "Plot completed.");
+    }
+    catch (boost::python::error_already_set &)
+    {
+        PyErr_Print();
+        Log(Log::Type::FATAL, "Could not run plot.");
+    }
 }
 
 #pragma endregion
